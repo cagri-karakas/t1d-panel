@@ -406,6 +406,7 @@ body {
     background: var(--bg-ikincil);
     border-top: 1px solid var(--kenar);
     padding: 12px 16px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
     z-index: 100;
 }
 
@@ -725,7 +726,7 @@ body {
 
     .sayfa {
         padding: 10px;
-        padding-bottom: 110px;
+        padding-bottom: calc(110px + env(safe-area-inset-bottom));
     }
 
     .baslik h1 {
