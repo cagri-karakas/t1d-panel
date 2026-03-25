@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1a1a2e">
+    <title>Metabolik Muhendislik Paneli</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+</head>
+<body>
+
+    <!-- ANA SAYFA -->
+    <div id="sayfa-ana" class="sayfa aktif">
+
+        <!-- Baslik -->
+        <header class="baslik">
+            <div class="baslik-sol">
+                <h1>METABOLIK MUHENDISLIK PANELI</h1>
+                <p class="profil-bilgi" id="profil-bilgi">Profil ayarlanmadi</p>
+            </div>
+            <div class="baslik-sag">
+                <div class="bildirim" id="son-bildirim"></div>
+                <button class="ayar-btn" id="geri-al-btn" title="Geri Al" disabled onclick="geriAlButon()">&#8617;</button>
+                <button class="ayar-btn" id="btn-temizle-ana" title="Tabloyu Temizle">&#128465;</button>
+                <button class="ayar-btn" id="ayarlar-ac" title="Ayarlar">&#9881;</button>
+            </div>
+        </header>
+
+        <!-- Ozet Kartlari -->
+        <section class="ozet-kartlari">
+            <div class="kart">
+                <span class="kart-ikon">&#128293;</span>
+                <span class="kart-baslik">KUMULATIF ENERJI</span>
+                <span class="kart-deger" id="toplam-kal">0 kcal</span>
+            </div>
+            <div class="kart">
+                <span class="kart-ikon">&#128200;</span>
+                <span class="kart-baslik">NET KARBONHIDRAT</span>
+                <span class="kart-deger" id="toplam-karb">0 g</span>
+            </div>
+            <div class="kart">
+                <span class="kart-ikon">&#128137;</span>
+                <span class="kart-baslik">TOPLAM BOLUS</span>
+                <span class="kart-deger" id="toplam-ins">0 U</span>
+            </div>
+            <div class="kart">
+                <span class="kart-ikon">&#9889;</span>
+                <span class="kart-baslik">NET ENERJI DENGESI</span>
+                <span class="kart-deger" id="net-enerji">0 kcal</span>
+            </div>
+        </section>
+
+        <!-- AI Yorum Alani -->
+        <section class="ai-yorum" id="ai-yorum">
+            <div class="ai-yorum-icerik">
+                <p class="ai-yorum-bos">Veri girisi yapildiginda AI analizi burada gorunecek.</p>
+            </div>
+        </section>
+
+        <!-- Gunluk Takip Tablosu -->
+        <section class="tablo-alan">
+            <div class="tablo-kaydir">
+                <table class="takip-tablosu" id="takip-tablosu">
+                    <thead>
+                        <tr>
+                            <th>SAAT</th>
+                            <th>DETAY</th>
+                            <th class="sayi">KAL</th>
+                            <th class="sayi">KARB</th>
+                            <th class="sayi">LIF</th>
+                            <th class="sayi">PROT</th>
+                            <th class="sayi">YAG</th>
+                            <th class="sayi ks">KS</th>
+                            <th class="sayi ins">INS</th>
+                            <th class="sayi">GI</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablo-govde">
+                        <!-- Satirlar JS ile eklenecek -->
+                    </tbody>
+                    <tfoot>
+                        <tr class="toplam-satir">
+                            <td>TOP</td>
+                            <td>GUNLUK KUMULATIF TOPLAM</td>
+                            <td class="sayi" id="t-kal">-</td>
+                            <td class="sayi" id="t-karb">-</td>
+                            <td class="sayi" id="t-lif">-</td>
+                            <td class="sayi" id="t-prot">-</td>
+                            <td class="sayi" id="t-yag">-</td>
+                            <td class="sayi">-</td>
+                            <td class="sayi" id="t-ins">-</td>
+                            <td class="sayi">-</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </section>
+
+        <!-- Metabolik Hafiza -->
+        <section class="metabolik-hafiza" id="metabolik-hafiza">
+            <h2>Metabolik Hafiza</h2>
+            <div id="hafiza-listesi" class="hafiza-listesi">
+                <p class="bos-mesaj">Henuz kapanmis gun yok.</p>
+            </div>
+        </section>
+
+        <!-- Islem Loglari -->
+        <section class="log-alani" id="log-alani">
+            <div class="log-listesi" id="log-listesi">
+                <p class="bos-mesaj">Henuz islem yok.</p>
+            </div>
+        </section>
+
+        <!-- Veri Giris Alani -->
+        <section class="giris-alani">
+            <div class="giris-kutu">
+                <div class="giris-ust">
+                    <textarea id="veri-giris" placeholder="Ornek: 200g tavuk gogsu + pilav yedim, KS 120, 8U Humalog..." rows="2"></textarea>
+                    <label class="foto-btn" title="Fotograf ekle">
+                        <input type="file" id="foto-input" accept="image/*" capture="environment" hidden>
+                        &#128247;
+                    </label>
+                </div>
+                <div class="foto-onizleme" id="foto-onizleme" hidden>
+                    <img id="foto-img" alt="Eklenen fotograf">
+                    <button id="foto-sil" class="foto-sil-btn" title="Fotografi kaldir">&times;</button>
+                </div>
+                <div class="giris-alt">
+                    <span class="mod-gosterge" id="mod-gosterge">Manuel Mod</span>
+                    <button class="gonder-btn" id="gonder-btn">Gonder</button>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- AYARLAR SAYFASI -->
+    <div id="sayfa-ayarlar" class="sayfa">
+        <header class="baslik">
+            <button class="geri-btn" id="ayarlar-kapat">&larr;</button>
+            <h1>Ayarlar</h1>
+        </header>
+
+        <section class="ayar-bolum">
+            <h2>Profil Bilgileri</h2>
+            <div class="form-grup">
+                <label for="ayar-isim">Isim</label>
+                <input type="text" id="ayar-isim" placeholder="Isminiz">
+            </div>
+            <div class="form-grup">
+                <label for="ayar-cinsiyet">Cinsiyet</label>
+                <select id="ayar-cinsiyet">
+                    <option value="">Seciniz</option>
+                    <option value="erkek">Erkek</option>
+                    <option value="kadin">Kadin</option>
+                </select>
+            </div>
+            <div class="form-grup">
+                <label for="ayar-dogum">Dogum Tarihi</label>
+                <input type="date" id="ayar-dogum">
+            </div>
+            <div class="form-grup">
+                <label for="ayar-boy">Boy (cm)</label>
+                <input type="number" id="ayar-boy" placeholder="182" min="100" max="250">
+            </div>
+            <div class="form-grup">
+                <label for="ayar-kilo">Kilo (kg)</label>
+                <input type="number" id="ayar-kilo" placeholder="77" min="30" max="300" step="0.1">
+            </div>
+        </section>
+
+        <section class="ayar-bolum">
+            <h2>AI Ayarlari</h2>
+            <div class="form-grup">
+                <label for="ayar-api-saglayici">AI Saglayici</label>
+                <select id="ayar-api-saglayici">
+                    <option value="gemini">Gemini (Ucretsiz)</option>
+                    <option value="claude">Claude (Ucretli)</option>
+                </select>
+            </div>
+            <div class="form-grup">
+                <label for="ayar-gemini-key">Gemini API Anahtari</label>
+                <input type="password" id="ayar-gemini-key" placeholder="AIza...">
+                <small>aistudio.google.com adresinden ucretsiz alin.</small>
+            </div>
+            <div class="form-grup">
+                <label for="ayar-api-key">Claude API Anahtari</label>
+                <input type="password" id="ayar-api-key" placeholder="sk-ant-...">
+            </div>
+        </section>
+
+        <section class="ayar-bolum">
+            <h2>Supabase Ayarlari</h2>
+            <div class="form-grup">
+                <label for="ayar-supa-url">Supabase URL</label>
+                <input type="text" id="ayar-supa-url" placeholder="https://xxxxx.supabase.co">
+            </div>
+            <div class="form-grup">
+                <label for="ayar-supa-key">Supabase Anon Key</label>
+                <input type="text" id="ayar-supa-key" placeholder="eyJhbGciOiJIUzI1NiIs...">
+            </div>
+        </section>
+
+        <section class="ayar-bolum">
+            <h2>Veri Yonetimi</h2>
+            <div class="form-grup buton-grup">
+                <button class="btn" id="btn-export">JSON Disari Aktar</button>
+                <button class="btn" id="btn-import">JSON Iceri Aktar</button>
+                <input type="file" id="import-input" accept=".json" hidden>
+            </div>
+        </section>
+
+        <div class="ayar-kaydet">
+            <button class="btn btn-birincil" id="ayar-kaydet-btn">Kaydet</button>
+        </div>
+    </div>
+
+    <!-- MANUEL GIRIS FORMU (API key yokken) -->
+    <div id="manuel-form-modal" class="modal" hidden>
+        <div class="modal-icerik">
+            <div class="modal-baslik">
+                <h2>Manuel Veri Girisi</h2>
+                <button class="modal-kapat" id="manuel-kapat">&times;</button>
+            </div>
+            <form id="manuel-form">
+                <div class="form-grup">
+                    <label for="m-saat">Saat</label>
+                    <input type="time" id="m-saat">
+                </div>
+                <div class="form-grup">
+                    <label for="m-detay">Detay</label>
+                    <input type="text" id="m-detay" placeholder="Kahvalti: Tost + Ayran">
+                </div>
+                <div class="form-satir">
+                    <div class="form-grup">
+                        <label for="m-kal">KAL</label>
+                        <input type="number" id="m-kal" step="0.1">
+                    </div>
+                    <div class="form-grup">
+                        <label for="m-karb">KARB</label>
+                        <input type="number" id="m-karb" step="0.1">
+                    </div>
+                    <div class="form-grup">
+                        <label for="m-lif">LIF</label>
+                        <input type="number" id="m-lif" step="0.1">
+                    </div>
+                </div>
+                <div class="form-satir">
+                    <div class="form-grup">
+                        <label for="m-prot">PROT</label>
+                        <input type="number" id="m-prot" step="0.1">
+                    </div>
+                    <div class="form-grup">
+                        <label for="m-yag">YAG</label>
+                        <input type="number" id="m-yag" step="0.1">
+                    </div>
+                    <div class="form-grup">
+                        <label for="m-gi">GI</label>
+                        <input type="number" id="m-gi" step="1">
+                    </div>
+                </div>
+                <div class="form-satir">
+                    <div class="form-grup">
+                        <label for="m-ks">Kan Sekeri (mg/dL)</label>
+                        <input type="number" id="m-ks">
+                    </div>
+                    <div class="form-grup">
+                        <label for="m-ins">Insulin (U)</label>
+                        <input type="number" id="m-ins" step="0.5">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-birincil">Tabloya Ekle</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Grafik Sayfasi (ileride) -->
+    <div id="sayfa-grafik" class="sayfa" hidden>
+        <header class="baslik">
+            <button class="geri-btn" id="grafik-kapat">&larr;</button>
+            <h1>Kan Sekeri Grafigi</h1>
+        </header>
+        <div class="grafik-alan">
+            <canvas id="ks-grafik"></canvas>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="supabase.js"></script>
+    <script src="api.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
