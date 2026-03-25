@@ -744,20 +744,26 @@ async function aiIleIsle(metin, foto) {
     }
 
     if (sonuc.islem === 'ekle') {
-        await satirEkle({
-            saat: sonuc.saat || simdikiSaat(),
-            detay: sonuc.detay,
-            kal: sonuc.kal || null,
-            karb: sonuc.karb || null,
-            lif: sonuc.lif || null,
-            prot: sonuc.prot || null,
-            yag: sonuc.yag || null,
-            ks: sonuc.ks || null,
-            ins: sonuc.ins || null,
-            gi: sonuc.gi || null,
-            gorselUrl: sonuc.gorselUrl || null
-        });
-        const kaynak = sonuc.kaynak || 'ai_hesaplama';
+        const besinListesi = (sonuc.besinler && sonuc.besinler.length > 0)
+            ? sonuc.besinler
+            : [sonuc];
+
+        for (const besin of besinListesi) {
+            await satirEkle({
+                saat: besin.saat || sonuc.saat || simdikiSaat(),
+                detay: besin.detay || sonuc.detay,
+                kal: besin.kal || null,
+                karb: besin.karb || null,
+                lif: besin.lif || null,
+                prot: besin.prot || null,
+                yag: besin.yag || null,
+                ks: besin.ks || sonuc.ks || null,
+                ins: besin.ins || sonuc.ins || null,
+                gi: besin.gi || null,
+                gorselUrl: sonuc.gorselUrl || null
+            });
+        }
+        const kaynak = sonuc.kaynak || (besinListesi[0]?.kaynak) || 'ai_hesaplama';
         const kaynakEtiket = kaynak === 'ai_hesaplama'
             ? ' · AI tahmini'
             : kaynak?.startsWith('web_arama:')
@@ -1043,6 +1049,9 @@ function gunuKapat() {
     const hafiza = JSON.parse(localStorage.getItem('mmp_hafiza') || '[]');
     hafiza.unshift(ozet);
     localStorage.setItem('mmp_hafiza', JSON.stringify(hafiza));
+
+    // Supabase'e kaydet
+    supabaseOzetKaydet(ozet);
 
     bildirimGoster('Gun kapatildi: ' + ozet.tarih);
     logEkle('sistem', 'Gun kapatildi: ' + ozet.tarih + ' | ' + Math.round(toplamlar.kal) + ' kcal | Net: ' + Math.round(netEnerji) + ' kcal');

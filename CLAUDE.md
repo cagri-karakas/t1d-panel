@@ -14,7 +14,7 @@ Dogal dil ile veri girisi, Claude API ile besin degeri hesaplama ve metabolik an
 ## Dosya Yapisi
 - `index.html` - Ana sayfa (tek sayfa uygulama)
 - `style.css` - Koyu temali, mobil oncelikli tasarim
-- `app.js` - Ana uygulama mantigi (UI, tablo, navigasyon, 10dk kurali, BMR)
+- `app.js` - Ana uygulama mantigi (UI, tablo, navigasyon, 6dk kurali, BMR)
 - `api.js` - AI API entegrasyonu (Gemini + Claude, dogal dil isleme, Google Search grounding, rate limit retry)
 - `supabase.js` - Veritabani islemleri (CRUD, storage)
 - `config.js` - Kisisel yapilandirma (gizli, .gitignore'da)
@@ -33,13 +33,13 @@ Dogal dil ile veri girisi, Claude API ile besin degeri hesaplama ve metabolik an
 
 ## Veritabani (Supabase)
 Aktif tablolar:
-- besin_degerleri: tum besin veritabani (~85 besin + kullanici duzeltmeleri, isim UNIQUE=taban isim, kal, karb, lif, prot, yag, gi, ref_miktar, ref_birim) - AKTIF, baslangicta localStorage'a senkronize edilir
 - giris_loglari: islem log kayitlari (tarih, saat, tip, mesaj) - AKTIF
 - daily_entries: gunluk veri girisleri (id, profile_id, date, time, detail, cal, carb, fiber, protein, fat, blood_sugar, insulin, gi, image_url) - AKTIF, RLS acik
 - profiles: kullanici profili (id, name, gender, birth_date, height_cm, weight_kg) - TABLO MEVCUT, henuz app.js'e baglanmadi
 - daily_summaries: gun sonu metabolik ozetler (id, profile_id, date, total_cal, total_carb, total_insulin, ai_summary) - AKTIF, gun kapanisinda yaziliyor
 
-Henuz kullanilmayan eski tablolar:
+Artik kullanilmayan tablolar:
+- besin_degerleri: eskiden yerel besin cache'i olarak kullaniliyordu, artik kullanilmiyor — besin degerleri her giris icin web_search ile hesaplaniyor
 - kan_sekeri, insulin, ogunler, gunluk_ozet — eski yapilar, uygulama kullanmiyor
 
 ## Veri Girisi Kurallari
@@ -74,7 +74,7 @@ Henuz kullanilmayan eski tablolar:
   * Model/key/saglayici degistirmek icin SADECE config.js'i duzenle, baska dosyaya dokunma
 - VARSAYILAN_API_KEY, VARSAYILAN_GEMINI_KEY, VARSAYILAN_API_SAGLAYICI — API_KONFIG'den turetilen geriye donuk sabitler
 - Supabase URL + anon key (VARSAYILAN_SUPABASE)
-- Bu bilgiler uygulama acildiginda otomatik yuklenir, config.js degerleri her zaman localStorage'i ezer
+- config.js yuklenince: API key'ler (gemini/claude) her zaman localStorage'i ezer; profil bilgileri (isim, boy, kilo vb.) sadece localStorage bos ise uygulanir
 
 ## MCP Durumu
 - Supabase MCP + GitHub MCP ikisi de `C:\Users\cagri\.claude\settings.json`'da tanimli
@@ -95,9 +95,7 @@ Henuz kullanilmayan eski tablolar:
 
 ## Mevcut Durum
 - Supabase MCP kuruldu ve calisiyor
-- besin_degerleri (~90 besin) ve giris_loglari tablolari aktif kullaniliyor
-- Besin veritabani tamamen Supabase'de, baslangicta localStorage'a senkronize ediliyor (besin-db.js kaldirildi)
-- Besin DB sync artik REPLACE (merge degil) — Supabase tam kaynak, eski/yanlis localStorage kayitlari temizlenir
+- giris_loglari tablosu aktif kullaniliyor
 - Chat tarzi log alani eklendi (giris alani ustunde, Supabase'e kaydediliyor)
 - Besin hesaplama, 6dk kurali, GI agirlikli ortalama, Ctrl+V gorsel yapistirma calisiyor
 - Temizle butonu (cop kutusu ikonu) ana sayfada baslik saginda, ayarlar dislisi yaninda
@@ -112,29 +110,20 @@ Henuz kullanilmayan eski tablolar:
 - gunuTemizle(): localStorage + Supabase daily_entries birlikte temizlenir (F5'te geri gelme sorunu cozuldu)
 - supabaseGunlukKayitlariSil(tarih): supabase.js'e eklendi, tarihe gore toplu silme
 - Besin kaynagi ve guven skoru: AI ekle isleminde kaynak ve guven alanlari donduruyor
-  * kaynak: "yerel_db" | "web_arama:domain.com" | "ai_hesaplama"
+  * kaynak: "web_arama:domain.com" | "ai_hesaplama"
   * guven: "yuksek" | "orta" | "dusuk"
-  * Bildirimde kaynak etiketi gosterilir: "Onaylanmis kayit", "burgerking.com.tr", "AI tahmini"
+  * Bildirimde kaynak etiketi gosterilir: "burgerking.com.tr", "AI tahmini"
   * guven="dusuk" ise bildirim turuncu renkte gosterilir (uyari tipi)
 - bildirimGoster(): tip parametresi aktif edildi (bilgi/uyari/hata), CSS'e .bildirim.uyari stili eklendi
 - Besin kaynak fallback: sonuc.kaynak yoksa 'ai_hesaplama' varsayilan, guven yoksa 'dusuk' — bildirimde her zaman etiket gorunur
-- Besin DB kayit akilli filtre: ekle isleminde kombine giris / insülin / KS varsa DB'ye yazma (tekBesin kontrolu)
-- besinler[] array: AI ekle JSON'unda birden fazla besin varsa "besinler" dizisiyle ayri ayri donduruyor, her biri DB'ye kaydediliyor
-- Besin DB sema guncellendi: isim = taban isim (miktarsiz), ref_miktar + ref_birim ayri kolonlar
-  * besinVeritabanineEkle(): miktarCikar() ile miktari isimden ayirip taban isim + refMiktar/refBirim kaydet
-  * besinVeritabanindaAra(): taban isimle esles, refMiktar varsa sorgu miktarina gore orantila
-  * "viski 80 ml" → DB'de "viski" (ref:40ml, 97kcal) bulunur, 80/40=2x oranla 194kcal hesaplanir
-  * Marka korumasi: "özerhisar ayran" sorgusu "ayran" DB kaydini kullanmaz (ekstra kelime koruması)
-  * Eski sema geriye donuk uyumlulugu: refMiktar=null eski kayitlarda isimde gomulu miktar ile oranlanir
-  * miktarCikar() fonksiyonu: sayisal (245ml, 100g) ve Turkce olcu (bir su bardagi=200ml, yemek kasigi=15ml) anlama
-  * OLCU_TABLOSU: su bardagi=200, cay bardagi=120, yemek kasigi=15, tatli kasigi=7, cay kasigi=3, fincan=150, kase=250 (ml/g)
-  * birimUyumlu() + miktarMlYaCevir(): iki birimin uyumlu olup olmadigini kontrol eder, ml/g'ye cevirerek oran hesaplar
+- besinler[] array: AI ekle JSON'unda birden fazla besin varsa "besinler" dizisiyle donduruyor, app.js aiIleIsle() her birini ayri satirEkle() ile ekler
 - satirEkle() tablo siralama: yeni kayit push() degil splice() ile zamana gore dogru konuma ekleniyor
   * Gecmise donuk saat girisinde (ornek: 23:30'da "22:00 cay") tablo kronolojik sirali kalir
   * 6dk kurali insertion noktasindaki zaman-komsu onceki kaydi kontrol eder (artik sadece son eleman degil)
 - profilYukle() GitHub Pages destegi: VARSAYILAN_SUPABASE (config.js) yoksa app.js'deki fallback degerler kullanilir
   * Fallback: url=cjpeyxnkragcqckegiry.supabase.co, key=sb_publishable_ZounC462zKHD_aHDc2PSgQ_SYTfBYVB
   * API key yoksa bildirim alani HTML link ile Ayarlar sayfasina yonlendirir (8 sn gosterilir)
+- daily_summaries BUG: gunuKapat() supabaseOzetKaydet() cagirmiyor — gün sonu verileri Supabase'e yazilmiyor (duzeltildi, asagiya bak)
 
 ## Bilinen Bug Duzeltmeleri (tamamlandi)
 - Birlesik besin adi kaydetme bug'i duzeltildi: guncelle isleminde detayda " + " varsa besin DB'ye kaydedilmiyor
