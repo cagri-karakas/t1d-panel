@@ -123,7 +123,10 @@ Artik kullanilmayan tablolar:
 - profilYukle() GitHub Pages destegi: VARSAYILAN_SUPABASE (config.js) yoksa app.js'deki fallback degerler kullanilir
   * Fallback: url=cjpeyxnkragcqckegiry.supabase.co, key=sb_publishable_ZounC462zKHD_aHDc2PSgQ_SYTfBYVB
   * API key yoksa bildirim alani HTML link ile Ayarlar sayfasina yonlendirir (8 sn gosterilir)
-- daily_summaries BUG: gunuKapat() supabaseOzetKaydet() cagirmiyor — gün sonu verileri Supabase'e yazilmiyor (duzeltildi, asagiya bak)
+- daily_summaries bug duzeltildi: gunuKapat() artik supabaseOzetKaydet() cagiriyor
+- api.js fallback Gemini modeli guncellendi: gemini-2.0-flash → gemini-3-flash-preview (GitHub Pages'de config.js olmayinca devreye giriyor)
+- iOS safe area destegi eklendi: viewport-fit=cover (index.html), env(safe-area-inset-bottom) (style.css .giris-alani ve .sayfa)
+- sw.js cache versiyonu: mmp-v3 (onceki: v2)
 
 ## Bilinen Bug Duzeltmeleri (tamamlandi)
 - Birlesik besin adi kaydetme bug'i duzeltildi: guncelle isleminde detayda " + " varsa besin DB'ye kaydedilmiyor
@@ -135,8 +138,14 @@ Artik kullanilmayan tablolar:
 - Tablo siralama bug'i: satirEkle push() → splice() ile duzeltildi, gecmis saatli girisler dogru konuma giriyor
 - Besin DB duplikasyon bug'i: "40 ml viski" + "viski 40 ml" + "viski tek" ayri satirlar olusturuyordu — taban isim + ref_miktar semasiyla cozuldu
 
+## Kaldığımız Yer (2026-03-25)
+- Uygulama GitHub Pages'de canlı: https://cagri-karakas.github.io/t1d-panel/
+- iPhone'da PWA kurulumu denendi, Gemini key girildi, veri girisi calisti
+- iOS layout sorunu: sayfa ilk acilista dogru gorunuyor, veri girisi yapinca (muhtemelen klavye acilinca) bozuluyor
+- Sonraki oturumda: ekran goruntusunu al, tam olarak ne bozulduğunu tespit et, klavye + fixed input sorunu coz
+
 ## Siradaki Isler
-- Gercek kullanim sirasinda eksikleri not al, sonraki oturumda duzelt
+- iOS klavye acilinca layout bozulma sorunu (position:fixed + visualViewport sorunu olabilir — ekran goruntusuyle dogrula)
 - Profil bilgilerinin Supabase profiles tablosuna baglama (tablo mevcut, app.js entegrasyonu yok)
 - Supabase auth (Google login) — RLS gercek kullanici bazli yapilacak (simdilik USING(true), dusuk oncelik)
 - Dexcom CGM entegrasyonu (ileride)
