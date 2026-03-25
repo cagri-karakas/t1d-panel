@@ -2,7 +2,7 @@
 // METABOLIK MUHENDISLIK PANELI - SERVICE WORKER
 // ============================================
 
-const CACHE_ADI = 'mmp-v1';
+const CACHE_ADI = 'mmp-v2';
 const ONBELLEK_DOSYALAR = [
     './',
     './index.html',
