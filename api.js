@@ -7,7 +7,7 @@
 // Degistirmek icin sadece config.js'i duzenle
 const CLAUDE_API_URL = (typeof API_KONFIG !== 'undefined') ? API_KONFIG.claude.url : 'https://api.anthropic.com/v1/messages';
 const CLAUDE_MODEL = (typeof API_KONFIG !== 'undefined') ? API_KONFIG.claude.model : 'claude-haiku-4-5-20251001';
-const GEMINI_MODEL = (typeof API_KONFIG !== 'undefined') ? API_KONFIG.gemini.model : 'gemini-2.0-flash';
+const GEMINI_MODEL = (typeof API_KONFIG !== 'undefined') ? API_KONFIG.gemini.model : 'gemini-3-flash-preview';
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
 function sistemPromptuOlustur(profil, gunlukKayitlar, gecmisOzetler) {
