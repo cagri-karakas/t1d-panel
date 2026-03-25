@@ -76,13 +76,22 @@ Henuz kullanilmayan eski tablolar:
 - Supabase URL + anon key (VARSAYILAN_SUPABASE)
 - Bu bilgiler uygulama acildiginda otomatik yuklenir, config.js degerleri her zaman localStorage'i ezer
 
-## Supabase MCP Durumu
-- MCP settings.json'da tanimli: `C:\Users\cagri\.claude\settings.json`
-- Her konusma basinda mcp__supabase__list_projects cagirarak bagli olup olmadigini kontrol et
+## MCP Durumu
+- Supabase MCP + GitHub MCP ikisi de `C:\Users\cagri\.claude\settings.json`'da tanimli
+- Her konusma basinda mcp__supabase__list_projects cagirarak Supabase baglantisini kontrol et
 - Calisiyorsa bagli demektir, VS Code yeniden baslatmaya gerek yok
-- Bagli degilse REST API fallback kullan:
+- Supabase bagli degilse REST API fallback kullan:
   - URL: https://cjpeyxnkragcqckegiry.supabase.co
   - Anon key: config.js dosyasinda VARSAYILAN_SUPABASE.key
+- GitHub MCP token: settings.json'da GITHUB_PERSONAL_ACCESS_TOKEN olarak tanimli
+
+## GitHub Deployment
+- Repo: https://github.com/cagri-karakas/t1d-panel (public, private iken acildi)
+- GitHub Pages: https://cagri-karakas.github.io/t1d-panel/ (aktif, deploy ~2dk suruyor)
+- config.js repoda YOK (.gitignore) — API key'ler ve Supabase bilgileri GitHub'a yuklenmedi
+- GitHub Pages'de ilk acilista: Supabase otomatik baglanir (app.js fallback), AI icin Ayarlar'dan Gemini key girilmeli
+- Guncelleme: `git add <dosyalar> && git commit -m "..." && git push`
+- GUVENLIK NOTU: Tum tablolarda RLS policy USING(true) — anon key bilen herkes erisebilir. Supabase auth ileride eklenecek.
 
 ## Mevcut Durum
 - Supabase MCP kuruldu ve calisiyor
@@ -123,6 +132,9 @@ Henuz kullanilmayan eski tablolar:
 - satirEkle() tablo siralama: yeni kayit push() degil splice() ile zamana gore dogru konuma ekleniyor
   * Gecmise donuk saat girisinde (ornek: 23:30'da "22:00 cay") tablo kronolojik sirali kalir
   * 6dk kurali insertion noktasindaki zaman-komsu onceki kaydi kontrol eder (artik sadece son eleman degil)
+- profilYukle() GitHub Pages destegi: VARSAYILAN_SUPABASE (config.js) yoksa app.js'deki fallback degerler kullanilir
+  * Fallback: url=cjpeyxnkragcqckegiry.supabase.co, key=sb_publishable_ZounC462zKHD_aHDc2PSgQ_SYTfBYVB
+  * API key yoksa bildirim alani HTML link ile Ayarlar sayfasina yonlendirir (8 sn gosterilir)
 
 ## Bilinen Bug Duzeltmeleri (tamamlandi)
 - Birlesik besin adi kaydetme bug'i duzeltildi: guncelle isleminde detayda " + " varsa besin DB'ye kaydedilmiyor
@@ -135,5 +147,7 @@ Henuz kullanilmayan eski tablolar:
 - Besin DB duplikasyon bug'i: "40 ml viski" + "viski 40 ml" + "viski tek" ayri satirlar olusturuyordu — taban isim + ref_miktar semasiyla cozuldu
 
 ## Siradaki Isler
+- Gercek kullanim sirasinda eksikleri not al, sonraki oturumda duzelt
 - Profil bilgilerinin Supabase profiles tablosuna baglama (tablo mevcut, app.js entegrasyonu yok)
+- Supabase auth (Google login) — RLS gercek kullanici bazli yapilacak (simdilik USING(true), dusuk oncelik)
 - Dexcom CGM entegrasyonu (ileride)
