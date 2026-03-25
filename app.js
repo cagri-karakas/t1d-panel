@@ -68,13 +68,22 @@ function profilYukle() {
     if (typeof VARSAYILAN_SUPABASE !== 'undefined') {
         durum.profil.supabaseUrl = VARSAYILAN_SUPABASE.url;
         durum.profil.supabaseKey = VARSAYILAN_SUPABASE.key;
+    } else if (!durum.profil.supabaseUrl) {
+        // config.js yoksa (GitHub Pages vb.) varsayilan Supabase baglan
+        durum.profil.supabaseUrl = 'https://cjpeyxnkragcqckegiry.supabase.co';
+        durum.profil.supabaseKey = 'sb_publishable_ZounC462zKHD_aHDc2PSgQ_SYTfBYVB';
     }
     localStorage.setItem('mmp_profil', JSON.stringify(durum.profil));
     profilBilgiGuncelle();
 
-    // İlk kurulum uyarisi: API key veya Supabase bilgisi yoksa
-    if (!durum.profil.supabaseUrl || (!durum.profil.geminiKey && !durum.profil.apiKey)) {
-        setTimeout(() => bildirimGoster('İlk kurulum: Ayarlar\'dan API bilgilerini gir', 'uyari'), 1000);
+    // İlk kurulum uyarisi: API key yoksa ayarlara yonlendir
+    if (!durum.profil.geminiKey && !durum.profil.apiKey) {
+        setTimeout(() => {
+            const bildirim = document.getElementById('son-bildirim');
+            bildirim.innerHTML = '⚠️ AI için <a href="#" onclick="sayfaGoster(\'sayfa-ayarlar\');return false;" style="color:#ffd700;text-decoration:underline;">Ayarlar</a>\'dan Gemini API key gir';
+            bildirim.className = 'bildirim uyari aktif';
+            setTimeout(() => bildirim.classList.remove('aktif'), 8000);
+        }, 1000);
     }
 
     // Supabase baglantisi varsa baslat ve senkronize et
