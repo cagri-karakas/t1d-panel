@@ -117,6 +117,12 @@ Artik kullanilmayan tablolar:
 - bildirimGoster(): tip parametresi aktif edildi (bilgi/uyari/hata), CSS'e .bildirim.uyari stili eklendi
 - Besin kaynak fallback: sonuc.kaynak yoksa 'ai_hesaplama' varsayilan, guven yoksa 'dusuk' — bildirimde her zaman etiket gorunur
 - besinler[] array: AI ekle JSON'unda birden fazla besin varsa "besinler" dizisiyle donduruyor, app.js aiIleIsle() her birini ayri satirEkle() ile ekler
+- besinler[] per-item kaynak (2026-03-28): her besin kendi kaynak+guven alanlarina sahip
+  * api.js besinler[] semasina kaynak+guven eklendi, talimat guncellendi
+  * Bildirimde benzersiz kaynaklar listeleniyor: "· burgerking.com.tr, AI tahmini"
+  * satirEkle() kaynak+guven alanlari ile cagriliyor, satirBirlestir() bilesenler[]'e kaynak ekliyor
+  * Modal'da her bilesende kaynak badge'i: yesil=web kaynagi, sari=AI tahmini
+  * Tek girisli kayitlarda da modal'da kaynak badge'i gosteriliyor
 - satirEkle() tablo siralama: yeni kayit push() degil splice() ile zamana gore dogru konuma ekleniyor
   * Gecmise donuk saat girisinde (ornek: 23:30'da "22:00 cay") tablo kronolojik sirali kalir
   * 6dk kurali insertion noktasindaki zaman-komsu onceki kaydi kontrol eder (artik sadece son eleman degil)
@@ -126,7 +132,7 @@ Artik kullanilmayan tablolar:
 - daily_summaries bug duzeltildi: gunuKapat() artik supabaseOzetKaydet() cagiriyor
 - api.js fallback Gemini modeli guncellendi: gemini-2.0-flash → gemini-3-flash-preview (GitHub Pages'de config.js olmayinca devreye giriyor)
 - iOS safe area destegi eklendi: viewport-fit=cover (index.html), env(safe-area-inset-bottom) (style.css .giris-alani ve .sayfa)
-- sw.js cache versiyonu: mmp-v6 (her yeni deploy oncesi arttirilmali)
+- sw.js cache versiyonu: mmp-v7 (her yeni deploy oncesi arttirilmali)
 - sw.js sadece GET isteklerini cache'liyor; POST ve googleapis.com SW disinda
 
 ## Tablo Detay & Modal (2026-03-27 eklendi)
@@ -162,11 +168,10 @@ Artik kullanilmayan tablolar:
 - besinler[] baslik tekrarlama: "isim" alani yerine "detay" okunuyordu — duzeltildi
 - NET KARBONHIDRAT double-subtraction: Turk etiketleri net karb gosterdigi halde lif tekrar cikariliyordu
 
-## Kaldığımız Yer (2026-03-27)
+## Kaldığımız Yer (2026-03-28)
 - Uygulama GitHub Pages'de canlı ve calisiyor: https://cagri-karakas.github.io/t1d-panel/
-- Tablo DETAY sutunu kisa etiket, satira tiklaninca detay modali calisiyor
-- besinler[] bilesenlerini modal'da ayri satirlar olarak gosteriyor
-- SW POST caching bug'i duzeltildi (Gemini "cevap vermedi" sorunu cozuldu)
+- besinler[] per-item kaynak/guven destegi eklendi, modal'da her bilesende kaynak badge'i gorunuyor
+- Tek girisli kayitlarda da modal'da kaynak badge'i duzeltildi
 - iOS klavye layout sorunu henuz cozulmedi
 
 ## Siradaki Isler

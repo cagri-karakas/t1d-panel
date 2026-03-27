@@ -1092,7 +1092,10 @@ function satirTiklandi(index) {
             detayEl.appendChild(div);
         });
     } else {
-        detayEl.textContent = kayit.detay || '-';
+        const kaynakBadge = kayit.kaynak && kayit.kaynak !== 'ai_hesaplama'
+            ? `<span class="dm-kaynak-badge">· ${kayit.kaynak.split(':')[1] || kayit.kaynak}</span>`
+            : `<span class="dm-kaynak-badge ai">· AI tahmini</span>`;
+        detayEl.innerHTML = `${kayit.detay || '-'} ${kaynakBadge}`;
     }
 
     const degerler = [
