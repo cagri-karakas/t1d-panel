@@ -743,6 +743,31 @@ body {
     color: var(--metin-birincil);
 }
 
+.dm-bilesen {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--kenar);
+}
+
+.dm-bilesen:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.dm-bilesen:first-child {
+    padding-top: 0;
+}
+
+.dm-bilesen-ad {
+    font-weight: 500;
+    color: var(--metin-birincil);
+    margin-bottom: 3px;
+}
+
+.dm-bilesen-ozet {
+    font-size: 0.78rem;
+    color: var(--metin-ikincil);
+}
+
 .dm-eylemler {
     display: flex;
     justify-content: flex-end;

@@ -520,6 +520,12 @@ function saatFarkiDakika(saat1, saat2) {
 }
 
 function satirBirlestir(mevcut, yeni) {
+    // Bilesenler listesi: her kaynagi ayri sakla
+    if (!mevcut.bilesenler) {
+        mevcut.bilesenler = [{ detay: mevcut.detay, kal: mevcut.kal, karb: mevcut.karb, lif: mevcut.lif, prot: mevcut.prot, yag: mevcut.yag, ins: mevcut.ins, gi: mevcut.gi, ks: mevcut.ks }];
+    }
+    mevcut.bilesenler.push({ detay: yeni.detay, kal: yeni.kal, karb: yeni.karb, lif: yeni.lif, prot: yeni.prot, yag: yeni.yag, ins: yeni.ins, gi: yeni.gi, ks: yeni.ks });
+
     // Detay birlestir
     if (yeni.detay) {
         mevcut.detay = mevcut.detay
@@ -1054,7 +1060,34 @@ function satirTiklandi(index) {
 
     document.getElementById('dm-saat').textContent = kayit.saat || '';
     document.getElementById('dm-baslik').textContent = kayitEtiketiOlustur(kayit);
-    document.getElementById('dm-detay').textContent = kayit.detay || '-';
+    const detayEl = document.getElementById('dm-detay');
+    if (kayit.bilesenler && kayit.bilesenler.length > 1) {
+        detayEl.innerHTML = '';
+        kayit.bilesenler.forEach(b => {
+            const div = document.createElement('div');
+            div.className = 'dm-bilesen';
+            const adEl = document.createElement('div');
+            adEl.className = 'dm-bilesen-ad';
+            adEl.textContent = b.detay || '-';
+            div.appendChild(adEl);
+            const ozet = [];
+            if (b.kal) ozet.push(degerFormat(b.kal) + ' kcal');
+            if (b.karb) ozet.push(degerFormat(b.karb) + 'g karb');
+            if (b.prot) ozet.push(degerFormat(b.prot) + 'g prot');
+            if (b.yag) ozet.push(degerFormat(b.yag) + 'g yağ');
+            if (b.ks) ozet.push('KS: ' + b.ks);
+            if (b.ins) ozet.push(degerFormat(b.ins) + 'Ü ins');
+            if (ozet.length) {
+                const ozetEl = document.createElement('div');
+                ozetEl.className = 'dm-bilesen-ozet';
+                ozetEl.textContent = ozet.join(' · ');
+                div.appendChild(ozetEl);
+            }
+            detayEl.appendChild(div);
+        });
+    } else {
+        detayEl.textContent = kayit.detay || '-';
+    }
 
     const degerler = [
         { etiket: 'KAL', deger: kayit.kal, birim: 'kcal' },
