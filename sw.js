@@ -2,7 +2,7 @@
 // METABOLIK MUHENDISLIK PANELI - SERVICE WORKER
 // ============================================
 
-const CACHE_ADI = 'mmp-v5';
+const CACHE_ADI = 'mmp-v6';
 const ONBELLEK_DOSYALAR = [
     './',
     './index.html',
@@ -39,9 +39,12 @@ self.addEventListener('activate', (event) => {
 
 // Fetch: once cache, sonra network
 self.addEventListener('fetch', (event) => {
-    // API cagrilarini cache'leme
-    if (event.request.url.includes('api.anthropic.com') ||
-        event.request.url.includes('supabase.co')) {
+    // API cagrilarini ve POST isteklerini cache'leme
+    if (event.request.method !== 'GET' ||
+        event.request.url.includes('api.anthropic.com') ||
+        event.request.url.includes('supabase.co') ||
+        event.request.url.includes('googleapis.com') ||
+        event.request.url.includes('generativelanguage')) {
         return;
     }
 
@@ -50,7 +53,7 @@ self.addEventListener('fetch', (event) => {
             if (cevap) return cevap;
 
             return fetch(event.request).then((agCevap) => {
-                // Basarili cevaplari cache'le
+                // Sadece GET isteklerini cache'le
                 if (agCevap && agCevap.status === 200) {
                     const kopyaCevap = agCevap.clone();
                     caches.open(CACHE_ADI).then((cache) => {
