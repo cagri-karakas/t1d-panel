@@ -791,7 +791,7 @@ async function aiIleIsle(metin, foto) {
         for (const besin of besinListesi) {
             await satirEkle({
                 saat: besin.saat || sonuc.saat || simdikiSaat(),
-                detay: besin.detay || sonuc.detay,
+                detay: besin.isim || besin.detay || sonuc.detay,
                 kal: besin.kal || null,
                 karb: besin.karb || null,
                 lif: besin.lif || null,
