@@ -614,7 +614,7 @@ function tabloGuncelle() {
 
         tr.innerHTML = `
             <td>${k.saat || '-'}</td>
-            <td>${k.detay || '-'}</td>
+            <td class="detay-hucre">${kayitEtiketiOlustur(k)}</td>
             <td class="sayi">${degerFormat(k.kal)}</td>
             <td class="sayi">${degerFormat(k.karb)}</td>
             <td class="sayi">${degerFormat(k.lif)}</td>
@@ -637,6 +637,40 @@ function tabloGuncelle() {
 function degerFormat(deger) {
     if (deger === null || deger === undefined || deger === 0) return '-';
     return Number.isInteger(deger) ? deger : deger.toFixed(1);
+}
+
+function kayitEtiketiOlustur(kayit) {
+    const kal = kayit.kal || 0;
+    const ks = kayit.ks || 0;
+    const ins = kayit.ins || 0;
+
+    if (kal === 0) {
+        if (ks > 0 && ins > 0) return 'Kan şekeri + İnsülin';
+        if (ks > 0) return 'Kan şekeri ölçümü';
+        if (ins > 0) return 'İnsülin dozu';
+        return kayit.detay || '-';
+    }
+
+    const saat = kayit.saat || '00:00';
+    const parcalar = saat.split(':');
+    const dakika = parseInt(parcalar[0]) * 60 + parseInt(parcalar[1] || 0);
+
+    let ogunAdi;
+    if (dakika >= 360 && dakika < 630) ogunAdi = 'Kahvaltı';
+    else if (dakika >= 630 && dakika < 720) ogunAdi = 'Sabah ara öğünü';
+    else if (dakika >= 720 && dakika < 900) ogunAdi = 'Öğle yemeği';
+    else if (dakika >= 900 && dakika < 1050) ogunAdi = 'İkindi ara öğünü';
+    else if (dakika >= 1050 && dakika < 1260) ogunAdi = 'Akşam yemeği';
+    else ogunAdi = 'Gece atıştırması';
+
+    if (ks > 0 || ins > 0) {
+        const ekler = [];
+        if (ks > 0) ekler.push('KS');
+        if (ins > 0) ekler.push('İns');
+        return ogunAdi + ' + ' + ekler.join('+');
+    }
+
+    return ogunAdi;
 }
 
 function ksRenk(ks) {
@@ -1015,8 +1049,41 @@ async function geriAl() {
 
 // --- Satir Tiklama (ileride duzenleme icin) ---
 function satirTiklandi(index) {
-    // TODO: Satir duzenleme modalini ac
-    console.log('Satir tiklandi:', index, durum.gunlukKayitlar[index]);
+    const kayit = durum.gunlukKayitlar[index];
+    if (!kayit) return;
+
+    document.getElementById('dm-saat').textContent = kayit.saat || '';
+    document.getElementById('dm-baslik').textContent = kayitEtiketiOlustur(kayit);
+    document.getElementById('dm-detay').textContent = kayit.detay || '-';
+
+    const degerler = [
+        { etiket: 'KAL', deger: kayit.kal, birim: 'kcal' },
+        { etiket: 'KARB', deger: kayit.karb, birim: 'g' },
+        { etiket: 'LİF', deger: kayit.lif, birim: 'g' },
+        { etiket: 'PROT', deger: kayit.prot, birim: 'g' },
+        { etiket: 'YAĞ', deger: kayit.yag, birim: 'g' },
+        { etiket: 'KS', deger: kayit.ks, birim: 'mg/dL', renk: ksRenk(kayit.ks) },
+        { etiket: 'İNS', deger: kayit.ins, birim: 'U', renk: kayit.ins ? 'ins-deger' : '' },
+        { etiket: 'GI', deger: kayit.gi, birim: '' },
+    ];
+
+    document.getElementById('dm-degerler').innerHTML = degerler.map(d => {
+        const val = d.deger ? degerFormat(d.deger) + (d.birim ? ' ' + d.birim : '') : '-';
+        const renk = d.renk ? ` ${d.renk}` : '';
+        return `<div class="dm-deger-item">
+            <span class="dm-etiket">${d.etiket}</span>
+            <span class="dm-sayi${renk}">${val}</span>
+        </div>`;
+    }).join('');
+
+    document.getElementById('dm-sil-btn').onclick = () => {
+        if (confirm('Bu kayıt silinsin mi?')) {
+            satirSil(index);
+            document.getElementById('detay-modal').hidden = true;
+        }
+    };
+
+    document.getElementById('detay-modal').hidden = false;
 }
 
 // --- Gun Kapatma ---
@@ -1221,6 +1288,14 @@ function olaylariDinle() {
     document.getElementById('btn-import').addEventListener('click', veriImport);
     document.getElementById('import-input').addEventListener('change', veriImportIsle);
     document.getElementById('btn-temizle-ana').addEventListener('click', gunuTemizle);
+
+    // Detay modali
+    document.getElementById('detay-modal-kapat').addEventListener('click', () => {
+        document.getElementById('detay-modal').hidden = true;
+    });
+    document.getElementById('detay-modal').addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) document.getElementById('detay-modal').hidden = true;
+    });
 }
 
 async function gunuTemizle() {
