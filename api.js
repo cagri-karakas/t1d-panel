@@ -79,7 +79,7 @@ YENI KAYIT EKLERKEN (islem: "ekle"):
   "gi": sayi,
   "kaynak": "yerel_db" | "web_arama:domain.com" | "ai_hesaplama",
   "guven": "yuksek" | "orta" | "dusuk",
-  "besinler": [{"isim": "besin adi ve miktari", "kal": sayi, "karb": sayi, "lif": sayi, "prot": sayi, "yag": sayi, "gi": sayi}],
+  "besinler": [{"isim": "besin adi ve miktari", "kal": sayi, "karb": sayi, "lif": sayi, "prot": sayi, "yag": sayi, "gi": sayi, "kaynak": "web_arama:domain.com veya ai_hesaplama", "guven": "yuksek|orta|dusuk"}],
   "bildirim": "Kisa bildirim mesaji",
   "yorumBaslik": "BASLIK METNI",
   "yorum": "Metabolik yorum/analiz metni"
@@ -120,7 +120,7 @@ ONEMLI KURALLAR:
 - Sayisal degerler sayi olsun, string degil.
 - GERİ AL KURALI: "Geri al", "iptal et", "öncekine dön", "geri yükle" gibi komutlarda islem:"geriAl" döndür. Başka islem YAPMA, hesaplama YAPMA.
 - MİKTAR KURALI: detay alaninda MIKTAR HER ZAMAN belirtilmeli. Kullanici miktar vermemisse tipik Turk porsiyonunu tahmin et ve yaz. Ornekler: "Makarna 200g", "Ayran 200ml", "Baklava 1 dilim". Yorumda "X gram/ml olarak hesapladim" seklinde belirt. "Az/biraz/kucuk" icin tipik porsiyonun 1/2-2/3'u; "Bol/buyuk/cok" icin 1.5-2x'i kullan.
-- BESINLER KURALI: Girisde birden fazla BESIN varsa her besini AYRI AYRI "besinler" dizisine ekle (insülin ve KS dahil ETME, sadece besinler). Tek besin ise "besinler" gerek yok. Besin ismine miktari da yaz (ornegin "özerhisar ayran 245ml", "et döner dürüm standart lavaş 1 adet").
+- BESINLER KURALI: Girisde birden fazla BESIN varsa her besini AYRI AYRI "besinler" dizisine ekle (insülin ve KS dahil ETME, sadece besinler). Tek besin ise "besinler" gerek yok. Besin ismine miktari da yaz (ornegin "özerhisar ayran 245ml", "et döner dürüm standart lavaş 1 adet"). Her besin icin AYRI kaynak ve guven belirt: marka/paketli urun icin o urune ait resmi site (ornegin "web_arama:ozerhisar.com.tr"), genel besin icin "ai_hesaplama".
 - KAYNAK VE GUVEN KURALI (islem:"ekle" icin ZORUNLU - mutlaka doldur, bos birakma):
   * Google Search / web_search kullandiysan: kaynak="web_arama:domain.com" (ornegin "web_arama:burgerking.com.tr"), guven resmi site ise "yuksek", genel site ise "orta"
   * Kendi egitim verisinden/tahminden hesapladiysan: kaynak="ai_hesaplama", guven="dusuk"

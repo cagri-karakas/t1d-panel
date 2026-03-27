@@ -768,6 +768,17 @@ body {
     color: var(--metin-ikincil);
 }
 
+.dm-kaynak-badge {
+    font-size: 0.7rem;
+    font-weight: normal;
+    color: #4ade80;
+    opacity: 0.85;
+}
+
+.dm-kaynak-badge.ai {
+    color: #facc15;
+}
+
 .dm-eylemler {
     display: flex;
     justify-content: flex-end;

@@ -522,9 +522,9 @@ function saatFarkiDakika(saat1, saat2) {
 function satirBirlestir(mevcut, yeni) {
     // Bilesenler listesi: her kaynagi ayri sakla
     if (!mevcut.bilesenler) {
-        mevcut.bilesenler = [{ detay: mevcut.detay, kal: mevcut.kal, karb: mevcut.karb, lif: mevcut.lif, prot: mevcut.prot, yag: mevcut.yag, ins: mevcut.ins, gi: mevcut.gi, ks: mevcut.ks }];
+        mevcut.bilesenler = [{ detay: mevcut.detay, kal: mevcut.kal, karb: mevcut.karb, lif: mevcut.lif, prot: mevcut.prot, yag: mevcut.yag, ins: mevcut.ins, gi: mevcut.gi, ks: mevcut.ks, kaynak: mevcut.kaynak }];
     }
-    mevcut.bilesenler.push({ detay: yeni.detay, kal: yeni.kal, karb: yeni.karb, lif: yeni.lif, prot: yeni.prot, yag: yeni.yag, ins: yeni.ins, gi: yeni.gi, ks: yeni.ks });
+    mevcut.bilesenler.push({ detay: yeni.detay, kal: yeni.kal, karb: yeni.karb, lif: yeni.lif, prot: yeni.prot, yag: yeni.yag, ins: yeni.ins, gi: yeni.gi, ks: yeni.ks, kaynak: yeni.kaynak });
 
     // Detay birlestir
     if (yeni.detay) {
@@ -802,16 +802,17 @@ async function aiIleIsle(metin, foto) {
                 ks: besin.ks || (ilkBesin ? sonuc.ks : null) || null,
                 ins: besin.ins || (ilkBesin ? sonuc.ins : null) || null,
                 gi: besin.gi || null,
-                gorselUrl: sonuc.gorselUrl || null
+                gorselUrl: sonuc.gorselUrl || null,
+                kaynak: besin.kaynak || sonuc.kaynak || 'ai_hesaplama',
+                guven: besin.guven || sonuc.guven || 'dusuk'
             });
         }
-        const kaynak = sonuc.kaynak || (besinListesi[0]?.kaynak) || 'ai_hesaplama';
-        const kaynakEtiket = kaynak === 'ai_hesaplama'
-            ? ' · AI tahmini'
-            : kaynak?.startsWith('web_arama:')
-                ? ' · ' + kaynak.split(':')[1]
-                : ' · AI tahmini';
-        const bildirimTip = (sonuc.guven || 'dusuk') === 'dusuk' ? 'uyari' : 'bilgi';
+        const kaynaklar = besinListesi.map(b => b.kaynak || sonuc.kaynak || 'ai_hesaplama');
+        const benzersizKaynaklar = [...new Set(kaynaklar)];
+        const kaynakEtiket = ' · ' + benzersizKaynaklar.map(k =>
+            k.startsWith('web_arama:') ? k.split(':')[1] : 'AI tahmini'
+        ).join(', ');
+        const bildirimTip = besinListesi.some(b => (b.guven || sonuc.guven || 'dusuk') === 'dusuk') ? 'uyari' : 'bilgi';
         bildirimGoster((sonuc.bildirim || 'Veri eklendi') + kaynakEtiket, bildirimTip);
         logEkle('sistem', 'Tabloya eklendi: ' + (sonuc.detay || '') + (sonuc.kal ? ' (' + Math.round(sonuc.kal) + ' kcal)' : '') + kaynakEtiket);
     } else if (sonuc.islem === 'guncelle') {
@@ -1070,7 +1071,10 @@ function satirTiklandi(index) {
             div.className = 'dm-bilesen';
             const adEl = document.createElement('div');
             adEl.className = 'dm-bilesen-ad';
-            adEl.textContent = b.detay || '-';
+            const kaynakBadge = b.kaynak && b.kaynak !== 'ai_hesaplama'
+                ? `<span class="dm-kaynak-badge">· ${b.kaynak.split(':')[1] || b.kaynak}</span>`
+                : `<span class="dm-kaynak-badge ai">· AI tahmini</span>`;
+            adEl.innerHTML = `${b.detay || '-'} ${kaynakBadge}`;
             div.appendChild(adEl);
             const ozet = [];
             if (b.kal) ozet.push(degerFormat(b.kal) + ' kcal');
