@@ -718,7 +718,7 @@ function ozetKartlariniGuncelle() {
         toplamlar.ins += k.ins || 0;
     });
 
-    const netKarb = toplamlar.karb - toplamlar.lif;
+    const netKarb = toplamlar.karb;
     const bmr = bmrHesapla();
     const netEnerji = bmr > 0 ? toplamlar.kal - bmr : toplamlar.kal;
 
@@ -1175,7 +1175,7 @@ function hafizaYukle() {
         const kart = document.createElement('div');
         kart.className = 'hafiza-karti';
 
-        const netKarb = (gun.toplamlar.karb - gun.toplamlar.lif).toFixed(1);
+        const netKarb = gun.toplamlar.karb.toFixed(1);
         const kiloYon = gun.kiloEtkisi >= 0 ? '+' : '';
 
         kart.innerHTML = `
