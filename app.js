@@ -788,7 +788,9 @@ async function aiIleIsle(metin, foto) {
             ? sonuc.besinler
             : [sonuc];
 
-        for (const besin of besinListesi) {
+        for (let bi = 0; bi < besinListesi.length; bi++) {
+            const besin = besinListesi[bi];
+            const ilkBesin = bi === 0;
             await satirEkle({
                 saat: besin.saat || sonuc.saat || simdikiSaat(),
                 detay: besin.isim || besin.detay || sonuc.detay,
@@ -797,8 +799,8 @@ async function aiIleIsle(metin, foto) {
                 lif: besin.lif || null,
                 prot: besin.prot || null,
                 yag: besin.yag || null,
-                ks: besin.ks || sonuc.ks || null,
-                ins: besin.ins || sonuc.ins || null,
+                ks: besin.ks || (ilkBesin ? sonuc.ks : null) || null,
+                ins: besin.ins || (ilkBesin ? sonuc.ins : null) || null,
                 gi: besin.gi || null,
                 gorselUrl: sonuc.gorselUrl || null
             });
