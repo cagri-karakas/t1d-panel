@@ -126,26 +126,51 @@ Artik kullanilmayan tablolar:
 - daily_summaries bug duzeltildi: gunuKapat() artik supabaseOzetKaydet() cagiriyor
 - api.js fallback Gemini modeli guncellendi: gemini-2.0-flash → gemini-3-flash-preview (GitHub Pages'de config.js olmayinca devreye giriyor)
 - iOS safe area destegi eklendi: viewport-fit=cover (index.html), env(safe-area-inset-bottom) (style.css .giris-alani ve .sayfa)
-- sw.js cache versiyonu: mmp-v3 (onceki: v2)
+- sw.js cache versiyonu: mmp-v6 (her yeni deploy oncesi arttirilmali)
+- sw.js sadece GET isteklerini cache'liyor; POST ve googleapis.com SW disinda
+
+## Tablo Detay & Modal (2026-03-27 eklendi)
+- DETAY sutunu artik kisa etiket gosteriyor: kayitEtiketiOlustur(kayit) — app.js
+  * Sadece KS/Ins: "Kan sekeri olcumu", "Insulin dozu", "Kan sekeri + Insulin"
+  * Besin girisleri saate gore: Kahvalti (06-10:30), Sabah ara ogunu, Ogle yemegi, Ikindi ara ogunu, Aksam yemegi, Gece atistirmasi
+  * Karma giris: "Aksam yemegi + Ins" gibi bilesik etiket
+- Satira tiklaninca detay modali aciliyor (satirTiklandi): tam detay metni + 8 deger gridi + Sil butonu
+- Modal kapatma: X butonu veya overlay'e tikla
+- satirBirlestir() artik bilesenler[] dizisi biriktiriyor
+  * Modal bilesenler[] varsa her ogeyi isim + besin ozeti satirinda gosteriyor
+  * Eski veriler (bilesenler yoksa) ham detay metnini gosteriyor
+
+## besinler[] Duzeltmeleri (2026-03-27)
+- besin.isim alani onceligi: detay = besin.isim || besin.detay || sonuc.detay
+  * AI besinler[] donurken "isim" alani doldurur, kod "detay" okuyordu — duzeltildi
+- sonuc.ins / sonuc.ks sadece ilk besine (ilkBesin = bi===0) ataniyor
+  * Onceden her besine ayni insulin degerini yaziyordu (3 besin x 12U = 36U) — duzeltildi
+- NET KARBONHIDRAT karti ve gun kapanisi ozeti artik lif cikarmıyor
+  * Turk etiketleri zaten net karb gosterir, tekrar cikarinca yanlis dusuk cikiyordu
 
 ## Bilinen Bug Duzeltmeleri (tamamlandi)
-- Birlesik besin adi kaydetme bug'i duzeltildi: guncelle isleminde detayda " + " varsa besin DB'ye kaydedilmiyor
-- Ayarlar paneli ekranda kalma bug'i duzeltildi: sayfaGoster() inline style temizliyor
-- Besin DB sync merge → replace yapildi: Supabase'den silinen yanlis kayitlar localStorage'da kalmiyordu, duzeltildi
+- Birlesik besin adi kaydetme bug'i: guncelle isleminde detayda " + " varsa besin DB'ye kaydedilmiyordu
+- Ayarlar paneli ekranda kalma bug'i: sayfaGoster() inline style temizliyor
+- Besin DB sync merge → replace: Supabase'den silinen yanlis kayitlar localStorage'da kalmiyordu
 - Gemini JSON sarma bug'i: sadeceMesaj + yorum icinde JSON → otomatik cozumleniyor
-- satirEkle await bug'i: aiIleIsle ve manuelFormGonder'da await eksikti, supabaseId set edilmeden devam ediyordu, duzeltildi
-- Temizle sonrasi F5'te veri geri gelme bug'i: gunuTemizle Supabase'i temizlemiyordu, duzeltildi
-- Tablo siralama bug'i: satirEkle push() → splice() ile duzeltildi, gecmis saatli girisler dogru konuma giriyor
-- Besin DB duplikasyon bug'i: "40 ml viski" + "viski 40 ml" + "viski tek" ayri satirlar olusturuyordu — taban isim + ref_miktar semasiyla cozuldu
+- satirEkle await bug'i: aiIleIsle ve manuelFormGonder'da await eksikti
+- Temizle sonrasi F5'te veri geri gelme bug'i: gunuTemizle Supabase'i temizlemiyordu
+- Tablo siralama bug'i: satirEkle push() → splice() ile duzeltildi
+- Besin DB duplikasyon bug'i: taban isim + ref_miktar semasiyla cozuldu
+- SW POST caching bug'i: Gemini POST istegi SW tarafindan cachelenmeye calisiliyordu, yanit bozuluyordu — sadece GET cache'leniyor
+- besinler[] insulin tripling: 3 besin x 12U = 36U — ilkBesin flag ile duzeltildi
+- besinler[] baslik tekrarlama: "isim" alani yerine "detay" okunuyordu — duzeltildi
+- NET KARBONHIDRAT double-subtraction: Turk etiketleri net karb gosterdigi halde lif tekrar cikariliyordu
 
-## Kaldığımız Yer (2026-03-25)
-- Uygulama GitHub Pages'de canlı: https://cagri-karakas.github.io/t1d-panel/
-- iPhone'da PWA kurulumu denendi, Gemini key girildi, veri girisi calisti
-- iOS layout sorunu: sayfa ilk acilista dogru gorunuyor, veri girisi yapinca (muhtemelen klavye acilinca) bozuluyor
-- Sonraki oturumda: ekran goruntusunu al, tam olarak ne bozulduğunu tespit et, klavye + fixed input sorunu coz
+## Kaldığımız Yer (2026-03-27)
+- Uygulama GitHub Pages'de canlı ve calisiyor: https://cagri-karakas.github.io/t1d-panel/
+- Tablo DETAY sutunu kisa etiket, satira tiklaninca detay modali calisiyor
+- besinler[] bilesenlerini modal'da ayri satirlar olarak gosteriyor
+- SW POST caching bug'i duzeltildi (Gemini "cevap vermedi" sorunu cozuldu)
+- iOS klavye layout sorunu henuz cozulmedi
 
 ## Siradaki Isler
-- iOS klavye acilinca layout bozulma sorunu (position:fixed + visualViewport sorunu olabilir — ekran goruntusuyle dogrula)
+- iOS klavye acilinca layout bozulma sorunu (position:fixed + visualViewport sorunu olabilir)
 - Profil bilgilerinin Supabase profiles tablosuna baglama (tablo mevcut, app.js entegrasyonu yok)
 - Supabase auth (Google login) — RLS gercek kullanici bazli yapilacak (simdilik USING(true), dusuk oncelik)
 - Dexcom CGM entegrasyonu (ileride)
