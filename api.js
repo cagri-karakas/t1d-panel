@@ -94,6 +94,7 @@ MEVCUT SATIR GUNCELLERKEN (islem: "guncelle"):
   "yorumBaslik": "BASLIK METNI",
   "yorum": "Metabolik yorum/analiz metni"
 }
+BILESEN DUZENLEMESI (mesajda "DEGİŞMEDİ/DEGİŞTİ" bilesenler listesi varsa): veri objesine "bilesenler" dizisi de ekle. Her bilesen icin { "detay": isim, "kal": sayi, "karb": sayi, "lif": sayi, "prot": sayi, "yag": sayi, "gi": sayi, "kaynak": "...", "guven": "..." } ver. DEGİŞMEDİ bilesenler icin mesajdaki mevcut degerleri aynen koru, DEGİŞTİ bilesenler icin yeniden hesapla. veri.kal/karb/lif/prot/yag/gi toplam degerler olmali.
 OGUN ETİKETİ KURALI: Kullanici "kahvalti degil aksam yemegi", "ogun turunu X yap" gibi bir etiket duzeltmesi isterse veri objesine "etiket" alani ekle. Gecerli degerler: "Kahvaltı", "Sabah ara öğünü", "Öğle yemeği", "İkindi ara öğünü", "Akşam yemeği", "Gece atıştırması".
 
 SATIR SILERKEN (islem: "sil"):
