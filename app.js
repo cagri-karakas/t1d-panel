@@ -18,7 +18,8 @@ const durum = {
     },
     gunlukKayitlar: [],  // Bugune ait satirlar
     gunId: null,         // Acik gunun ID'si
-    sonGirisSaati: null,  // 10 dk kurali icin
+    sonGirisSaati: null,  // 6 dk kurali icin
+    sonGirisZamani: null, // 4 saat kurali icin (timestamp)
     aiMesajGecmisi: [],  // AI baglam icin
     seciliFoto: null,     // Eklenmis fotograf
     logMesajlari: [],     // Islem log kayitlari
@@ -29,6 +30,7 @@ const durum = {
 
 // --- Sayfa Yukleme ---
 document.addEventListener('DOMContentLoaded', () => {
+    durum.sonGirisZamani = parseInt(localStorage.getItem('mmp_son_giris_zamani')) || null;
     profilYukle();
     gunlukVerileriYukle();
     olaylariDinle();
@@ -236,6 +238,19 @@ function bugunTarih() {
     return `${d.getFullYear()}-${m}-${g}`;
 }
 
+// Son giristen 4 saat gecmediyse o gunun tarihini dondur
+function kayitTarihi() {
+    if (!durum.sonGirisZamani) return bugunTarih();
+    const gecenMs = Date.now() - durum.sonGirisZamani;
+    if (gecenMs < 4 * 60 * 60 * 1000) {
+        const d = new Date(durum.sonGirisZamani);
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const g = String(d.getDate()).padStart(2, '0');
+        return `${d.getFullYear()}-${m}-${g}`;
+    }
+    return bugunTarih();
+}
+
 function aktifTarih() {
     return durum.gorunenTarih || bugunTarih();
 }
@@ -318,7 +333,7 @@ async function gunuGosterSonraki() {
 }
 
 function gunlukVerileriYukle() {
-    const anahtar = 'mmp_gun_' + bugunTarih();
+    const anahtar = 'mmp_gun_' + kayitTarihi();
     const kayitli = localStorage.getItem(anahtar);
     if (kayitli) {
         durum.gunlukKayitlar = JSON.parse(kayitli);
@@ -330,12 +345,12 @@ function gunlukVerileriYukle() {
 }
 
 function gunlukVerileriKaydet() {
-    const anahtar = 'mmp_gun_' + bugunTarih();
+    const anahtar = 'mmp_gun_' + kayitTarihi();
     localStorage.setItem(anahtar, JSON.stringify(durum.gunlukKayitlar));
 }
 
 async function gunlukVerileriYukleSupabase() {
-    const kayitlar = await supabaseKayitlariYukle(bugunTarih());
+    const kayitlar = await supabaseKayitlariYukle(kayitTarihi());
     if (kayitlar && kayitlar.length > 0) {
         // Supabase'den gelen kayitlara supabaseId ekle
         durum.gunlukKayitlar = kayitlar.map(k => ({ ...k, supabaseId: k.id }));
@@ -586,8 +601,11 @@ async function satirEkle(kayit) {
     gunlukVerileriKaydet();
     tabloGuncelle();
     ozetKartlariniGuncelle();
+    // 4 saat kuralı: son giris zamani guncelle
+    durum.sonGirisZamani = Date.now();
+    localStorage.setItem('mmp_son_giris_zamani', durum.sonGirisZamani);
     // Supabase'e kaydet, donus id'yi sakla
-    const data = await supabaseKayitEkle(kayit, bugunTarih());
+    const data = await supabaseKayitEkle(kayit, kayitTarihi());
     if (data && data[0]) {
         kayit.supabaseId = data[0].id;
         gunlukVerileriKaydet();
@@ -1560,8 +1578,11 @@ async function gunuTemizle() {
     durum.gunlukKayitlar = [];
     durum.logMesajlari = [];
     durum.aiMesajGecmisi = [];
-    localStorage.removeItem('mmp_gun_' + bugunTarih());
-    await supabaseGunlukKayitlariSil(bugunTarih());
+    const temizlenecekTarih = kayitTarihi();
+    durum.sonGirisZamani = null;
+    localStorage.removeItem('mmp_son_giris_zamani');
+    localStorage.removeItem('mmp_gun_' + temizlenecekTarih);
+    await supabaseGunlukKayitlariSil(temizlenecekTarih);
     tabloGuncelle();
     ozetKartlariniGuncelle();
     logAlaniGuncelle();
