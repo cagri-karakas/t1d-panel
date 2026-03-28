@@ -22,7 +22,8 @@ const durum = {
     aiMesajGecmisi: [],  // AI baglam icin
     seciliFoto: null,     // Eklenmis fotograf
     logMesajlari: [],     // Islem log kayitlari
-    geriAlYigini: []      // Undo stack (max 10)
+    geriAlYigini: [],     // Undo stack (max 10)
+    modalAcikIndex: -1    // Detay modalinda acik olan satirIndex
 };
 
 // --- Sayfa Yukleme ---
@@ -1061,10 +1062,18 @@ async function geriAl() {
     logEkle('sistem', 'Geri al uygulandı: ' + islem.tip);
 }
 
-// --- Satir Tiklama (ileride duzenleme icin) ---
+// --- Satir Tiklama ---
 function satirTiklandi(index) {
     const kayit = durum.gunlukKayitlar[index];
     if (!kayit) return;
+
+    durum.modalAcikIndex = index;
+
+    // Edit modunu sifirla
+    document.getElementById('dm-detay').hidden = false;
+    document.getElementById('dm-edit-alani').hidden = true;
+    document.getElementById('dm-eylemler').hidden = false;
+    document.getElementById('dm-edit-eylemler').hidden = true;
 
     document.getElementById('dm-saat').textContent = kayit.saat || '';
     document.getElementById('dm-baslik').textContent = kayitEtiketiOlustur(kayit);
@@ -1131,6 +1140,84 @@ function satirTiklandi(index) {
     };
 
     document.getElementById('detay-modal').hidden = false;
+}
+
+// --- Modal Duzenleme ---
+function modalDuzenleBaslat() {
+    const kayit = durum.gunlukKayitlar[durum.modalAcikIndex];
+    if (!kayit) return;
+
+    const editAlani = document.getElementById('dm-edit-alani');
+    editAlani.innerHTML = '';
+
+    const items = (kayit.bilesenler && kayit.bilesenler.length > 1)
+        ? kayit.bilesenler.map(b => b.detay || '')
+        : [kayit.detay || ''];
+
+    items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'dm-edit-item';
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'dm-edit-input';
+        input.value = item;
+        input.placeholder = 'Besin adı ve miktarı...';
+
+        const silBtn = document.createElement('button');
+        silBtn.className = 'dm-edit-sil';
+        silBtn.innerHTML = '&times;';
+        silBtn.title = 'Kaldır';
+        silBtn.onclick = () => div.remove();
+
+        div.appendChild(input);
+        div.appendChild(silBtn);
+        editAlani.appendChild(div);
+    });
+
+    document.getElementById('dm-detay').hidden = true;
+    editAlani.hidden = false;
+    document.getElementById('dm-eylemler').hidden = true;
+    document.getElementById('dm-edit-eylemler').hidden = false;
+
+    // İlk input'a focus
+    const ilkInput = editAlani.querySelector('.dm-edit-input');
+    if (ilkInput) ilkInput.focus();
+}
+
+function modalIptal() {
+    document.getElementById('dm-detay').hidden = false;
+    document.getElementById('dm-edit-alani').hidden = true;
+    document.getElementById('dm-eylemler').hidden = false;
+    document.getElementById('dm-edit-eylemler').hidden = true;
+}
+
+async function modalKaydetVeHesapla() {
+    const index = durum.modalAcikIndex;
+    const kayit = durum.gunlukKayitlar[index];
+    if (!kayit) return;
+
+    const inputs = document.querySelectorAll('#dm-edit-alani .dm-edit-input');
+    const bilesenler = Array.from(inputs).map(inp => inp.value.trim()).filter(v => v);
+
+    if (bilesenler.length === 0) {
+        bildirimGoster('En az bir bileşen gerekli', 'hata');
+        return;
+    }
+
+    const kaydetBtn = document.getElementById('dm-kaydet-btn');
+    kaydetBtn.textContent = 'Hesaplanıyor...';
+    kaydetBtn.disabled = true;
+
+    document.getElementById('detay-modal').hidden = true;
+
+    const bilesenMetni = bilesenler.join(', ');
+    const mesaj = `${index}. satırı güncelle (saat ${kayit.saat}). Bileşenler değiştirildi: ${bilesenMetni}. Besin değerlerini yeniden hesapla.`;
+
+    await aiIleIsle(mesaj);
+
+    kaydetBtn.textContent = 'Kaydet & Hesapla';
+    kaydetBtn.disabled = false;
 }
 
 // --- Gun Kapatma ---
@@ -1343,6 +1430,9 @@ function olaylariDinle() {
     document.getElementById('detay-modal').addEventListener('click', (e) => {
         if (e.target === e.currentTarget) document.getElementById('detay-modal').hidden = true;
     });
+    document.getElementById('dm-duzenle-btn').addEventListener('click', modalDuzenleBaslat);
+    document.getElementById('dm-iptal-btn').addEventListener('click', modalIptal);
+    document.getElementById('dm-kaydet-btn').addEventListener('click', modalKaydetVeHesapla);
 }
 
 async function gunuTemizle() {

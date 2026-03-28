@@ -782,7 +782,79 @@ body {
 .dm-eylemler {
     display: flex;
     justify-content: flex-end;
+    gap: 8px;
 }
+
+.btn-ikincil {
+    background: rgba(255,255,255,0.05);
+    color: var(--metin-ikincil);
+    border: 1px solid var(--kenar);
+    padding: 8px 16px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+.btn-ikincil:hover { background: rgba(255,255,255,0.1); }
+
+.btn-birincil {
+    background: var(--vurgu);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: opacity 0.2s;
+}
+.btn-birincil:hover { opacity: 0.85; }
+.btn-birincil:disabled { opacity: 0.5; cursor: default; }
+
+.btn-iptal {
+    background: transparent;
+    color: var(--metin-ikincil);
+    border: 1px solid var(--kenar);
+    padding: 8px 16px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.dm-edit-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--kenar);
+}
+.dm-edit-item:last-child { border-bottom: none; }
+
+.dm-edit-input {
+    flex: 1;
+    background: var(--bg-birincil);
+    border: 1px solid var(--kenar);
+    border-radius: 6px;
+    color: var(--metin-birincil);
+    padding: 6px 10px;
+    font-size: 0.85rem;
+    font-family: inherit;
+}
+.dm-edit-input:focus { outline: none; border-color: var(--vurgu); }
+
+.dm-edit-sil {
+    background: none;
+    border: none;
+    color: var(--metin-ikincil);
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 4px 6px;
+    border-radius: 4px;
+    line-height: 1;
+    flex-shrink: 0;
+}
+.dm-edit-sil:hover { color: #ff4757; background: rgba(255,71,87,0.1); }
 
 .btn-tehlike {
     background: rgba(255, 71, 87, 0.15);
