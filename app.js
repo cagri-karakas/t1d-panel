@@ -23,7 +23,8 @@ const durum = {
     seciliFoto: null,     // Eklenmis fotograf
     logMesajlari: [],     // Islem log kayitlari
     geriAlYigini: [],     // Undo stack (max 10)
-    modalAcikIndex: -1    // Detay modalinda acik olan satirIndex
+    modalAcikIndex: -1,   // Detay modalinda acik olan satirIndex
+    gorunenTarih: null    // Gosterilen gun (null = bugun)
 };
 
 // --- Sayfa Yukleme ---
@@ -34,6 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
     modGuncelle();
     tabloGuncelle();
     ozetKartlariniGuncelle();
+    tarihNavGuncelle();
     saatiGuncelle();
     swKaydet();
 });
@@ -229,6 +231,75 @@ function simdikiSaat() {
 // --- Gunluk Veriler (localStorage) ---
 function bugunTarih() {
     return new Date().toISOString().slice(0, 10);
+}
+
+function aktifTarih() {
+    return durum.gorunenTarih || bugunTarih();
+}
+
+function bugunMu() {
+    return aktifTarih() === bugunTarih();
+}
+
+function tarihNavGuncelle() {
+    const tarih = aktifTarih();
+    const label = document.getElementById('aktif-tarih-label');
+    const sonrakiBtn = document.getElementById('sonraki-gun');
+
+    if (bugunMu()) {
+        label.textContent = new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+        label.classList.remove('gecmis-gun');
+        sonrakiBtn.disabled = true;
+    } else {
+        const d = new Date(tarih + 'T00:00:00');
+        label.textContent = d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+        label.classList.add('gecmis-gun');
+        sonrakiBtn.disabled = false;
+    }
+
+    // Gecmis modda giris alani ve butonlari gizle
+    const girisAlani = document.querySelector('.giris-alani');
+    const temizleBtn = document.getElementById('btn-temizle-ana');
+    const geriAlBtn = document.getElementById('geri-al-btn');
+    if (girisAlani) girisAlani.hidden = !bugunMu();
+    if (temizleBtn) temizleBtn.hidden = !bugunMu();
+    if (geriAlBtn) geriAlBtn.hidden = !bugunMu();
+}
+
+async function gunuGoster(tarih) {
+    durum.gorunenTarih = (tarih === bugunTarih()) ? null : tarih;
+
+    if (bugunMu()) {
+        // Bugune don — normal akis
+        gunlukVerileriYukle();
+        tabloGuncelle();
+        ozetKartlariniGuncelle();
+        logYukle();
+    } else {
+        // Gecmis gun — Supabase'den yukle, read-only
+        durum.gunlukKayitlar = [];
+        tabloGuncelle();
+        ozetKartlariniGuncelle();
+        const kayitlar = await supabaseKayitlariYukle(tarih);
+        durum.gunlukKayitlar = kayitlar.map(k => ({ ...k, supabaseId: k.id }));
+        tabloGuncelle();
+        ozetKartlariniGuncelle();
+    }
+
+    tarihNavGuncelle();
+}
+
+function gunuGosterOnceki() {
+    const tarih = new Date(aktifTarih() + 'T00:00:00');
+    tarih.setDate(tarih.getDate() - 1);
+    gunuGoster(tarih.toISOString().slice(0, 10));
+}
+
+function gunuGosterSonraki() {
+    const tarih = new Date(aktifTarih() + 'T00:00:00');
+    tarih.setDate(tarih.getDate() + 1);
+    const yeniTarih = tarih.toISOString().slice(0, 10);
+    if (yeniTarih <= bugunTarih()) gunuGoster(yeniTarih);
 }
 
 function gunlukVerileriYukle() {
@@ -1072,7 +1143,7 @@ function satirTiklandi(index) {
     // Edit modunu sifirla
     document.getElementById('dm-detay').hidden = false;
     document.getElementById('dm-edit-alani').hidden = true;
-    document.getElementById('dm-eylemler').hidden = false;
+    document.getElementById('dm-eylemler').hidden = !bugunMu(); // Gecmis gunde duzenle/sil gizli
     document.getElementById('dm-edit-eylemler').hidden = true;
 
     document.getElementById('dm-saat').textContent = kayit.saat || '';
@@ -1463,6 +1534,10 @@ function olaylariDinle() {
     document.getElementById('dm-duzenle-btn').addEventListener('click', modalDuzenleBaslat);
     document.getElementById('dm-iptal-btn').addEventListener('click', modalIptal);
     document.getElementById('dm-kaydet-btn').addEventListener('click', modalKaydetVeHesapla);
+
+    // Tarih navigasyon
+    document.getElementById('onceki-gun').addEventListener('click', gunuGosterOnceki);
+    document.getElementById('sonraki-gun').addEventListener('click', gunuGosterSonraki);
 }
 
 async function gunuTemizle() {
