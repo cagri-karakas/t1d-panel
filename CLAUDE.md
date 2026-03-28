@@ -86,7 +86,7 @@ Artik kullanilmayan tablolar:
 - GitHub MCP token: settings.json'da GITHUB_PERSONAL_ACCESS_TOKEN olarak tanimli
 
 ## GitHub Deployment
-- Repo: https://github.com/cagri-karakas/t1d-panel (public, private iken acildi)
+- Repo: https://github.com/cagri-karakas/t1d-panel (public)
 - GitHub Pages: https://cagri-karakas.github.io/t1d-panel/ (aktif, deploy ~2dk suruyor)
 - config.js repoda YOK (.gitignore) — API key'ler ve Supabase bilgileri GitHub'a yuklenmedi
 - GitHub Pages'de ilk acilista: Supabase otomatik baglanir (app.js fallback), AI icin Ayarlar'dan Gemini key girilmeli
@@ -107,7 +107,7 @@ Artik kullanilmayan tablolar:
 - gunlukVerileriYukleSupabase(): Supabase hazir olunca bugunun kayitlarini ceker, localStorage'i gunceller
 - satirEkle(): async, Supabase'e kaydeder, donus id'yi kayit objesine supabaseId olarak saklar
 - satirGuncelle() / satirSil(): supabaseId varsa Supabase'e yansitir (fire-and-forget)
-- gunuTemizle(): localStorage + Supabase daily_entries birlikte temizlenir (F5'te geri gelme sorunu cozuldu)
+- gunuTemizle(): localStorage + Supabase daily_entries birlikte temizlenir
 - supabaseGunlukKayitlariSil(tarih): supabase.js'e eklendi, tarihe gore toplu silme
 - Besin kaynagi ve guven skoru: AI ekle isleminde kaynak ve guven alanlari donduruyor
   * kaynak: "web_arama:domain.com" | "ai_hesaplama"
@@ -117,7 +117,7 @@ Artik kullanilmayan tablolar:
 - bildirimGoster(): tip parametresi aktif edildi (bilgi/uyari/hata), CSS'e .bildirim.uyari stili eklendi
 - Besin kaynak fallback: sonuc.kaynak yoksa 'ai_hesaplama' varsayilan, guven yoksa 'dusuk' — bildirimde her zaman etiket gorunur
 - besinler[] array: AI ekle JSON'unda birden fazla besin varsa "besinler" dizisiyle donduruyor, app.js aiIleIsle() her birini ayri satirEkle() ile ekler
-- besinler[] per-item kaynak (2026-03-28): her besin kendi kaynak+guven alanlarina sahip
+- besinler[] per-item kaynak: her besin kendi kaynak+guven alanlarina sahip
   * api.js besinler[] semasina kaynak+guven eklendi, talimat guncellendi
   * Bildirimde benzersiz kaynaklar listeleniyor: "· burgerking.com.tr, AI tahmini"
   * satirEkle() kaynak+guven alanlari ile cagriliyor, satirBirlestir() bilesenler[]'e kaynak ekliyor
@@ -132,10 +132,30 @@ Artik kullanilmayan tablolar:
 - daily_summaries bug duzeltildi: gunuKapat() artik supabaseOzetKaydet() cagiriyor
 - api.js fallback Gemini modeli guncellendi: gemini-2.0-flash → gemini-3-flash-preview (GitHub Pages'de config.js olmayinca devreye giriyor)
 - iOS safe area destegi eklendi: viewport-fit=cover (index.html), env(safe-area-inset-bottom) (style.css .giris-alani ve .sayfa)
-- sw.js cache versiyonu: mmp-v12 (her yeni deploy oncesi arttirilmali)
+- sw.js cache versiyonu: mmp-v13 (her yeni deploy oncesi arttirilmali)
 - sw.js sadece GET isteklerini cache'liyor; POST ve googleapis.com SW disinda
 - sw.js JS dosyalari (app.js, api.js) icin network-first stratejisi — deploy sonrasi hard refresh gerekmez
 - style.css: [hidden] { display: none !important } kurali eklendi — CSS class display override sorunu cozuldu
+
+## Tarih Yonetimi (2026-03-29)
+- bugunTarih(): toISOString() yerine lokal tarih kullanir — UTC+3 timezone bug'i duzeltildi
+- kayitTarihi(): 4 saat kurali — son giristen 4 saat gecmediyse yeni kayit ayni gunun tarihine gider
+  * durum.sonGirisZamani: timestamp, localStorage'a kaydedilir (mmp_son_giris_zamani)
+  * Gece yarisindan sonra 4 saat icindeki girisler onceki gunun verisine eklenir
+  * 4 saat gecince yeni gun baslar
+  * gunuTemizle() sonGirisZamani'yi da sifirlar
+- gunlukVerileriYukle() / gunlukVerileriKaydet() / supabaseKayitEkle(): bugunTarih() yerine kayitTarihi() kullanir
+
+## Tarih Navigasyonu (2026-03-29)
+- Baslikta tarih navigasyon: ← TARIH → butonlari (index.html .tarih-nav)
+- durum.gorunenTarih: null=bugun, 'YYYY-MM-DD'=gecmis gun
+- gunuGoster(tarih): Supabase'den o tarihin daily_entries'ini yukler, read-only render eder
+- aktifTarih(): durum.gorunenTarih || bugunTarih()
+- bugunMu(): aktifTarih() === bugunTarih()
+- tarihNavGuncelle(): label gunceller, temizle/geri al butonlarini gecmis gunde gizler
+- Giris alani her zaman gorunur — gecmis gun gorunumunde de yeni veri girilebilir
+- Gecmis gunde modal'da Duzenle/Sil butonlari gizlenir (read-only)
+- tariheDayEkle(tarihStr, gun): timezone-safe gun ekleme/cikarma yardimcisi
 
 ## Tablo Detay & Modal
 - DETAY sutunu artik kisa etiket gosteriyor: kayitEtiketiOlustur(kayit) — app.js
@@ -148,19 +168,19 @@ Artik kullanilmayan tablolar:
 - satirBirlestir() artik bilesenler[] dizisi biriktiriyor
   * Modal bilesenler[] varsa her ogeyi isim + besin ozeti satirinda gosteriyor
   * Eski veriler (bilesenler yoksa) ham detay metnini gosteriyor
-- Modal Duzenle modu (2026-03-28 eklendi):
+- Modal Duzenle modu:
   * "Duzenle" butonu → her bilesen editable input'a donus, yaninda × silme butonu
-  * "Kaydet & Hesapla" → degismeyen bilesenlerin degerlerini mesajda AI'ya bildirir (koru), sadece degisen yeniden hesaplanir
-  * AI cevabi sonrasi bilesenler[].detay isimleri manuel guncellenir
-  * api.js: ogün etiketi duzeltmesinde veri.etiket gonderme talimati eklendi
+  * "Kaydet & Hesapla" → spinner gosterir, modal kapanir, "AI hesaplıyor..." bildirimi cıkar
+  * Degismeyen bilesenlerin degerlerini mesajda AI'ya bildirir (koru), sadece degisen yeniden hesaplanir
+  * AI guncelle response'unda veri.bilesenler[] donerse per-item degerler de guncellenir (api.js schema'da tanimli)
+  * AI cevabi sonrasi bilesenler[].detay isimleri manuel guncellenir (safety net)
+  * api.js: guncelle schema'ya bilesenler[] eklendi; ogün etiketi duzeltmesinde veri.etiket gonderme talimati eklendi
+  * Gecmis gunde modal acilinca Duzenle/Sil butonlari gizlenir
 
 ## besinler[] Duzeltmeleri (2026-03-27)
 - besin.isim alani onceligi: detay = besin.isim || besin.detay || sonuc.detay
-  * AI besinler[] donurken "isim" alani doldurur, kod "detay" okuyordu — duzeltildi
 - sonuc.ins / sonuc.ks sadece ilk besine (ilkBesin = bi===0) ataniyor
-  * Onceden her besine ayni insulin degerini yaziyordu (3 besin x 12U = 36U) — duzeltildi
 - NET KARBONHIDRAT karti ve gun kapanisi ozeti artik lif cikarmıyor
-  * Turk etiketleri zaten net karb gosterir, tekrar cikarinca yanlis dusuk cikiyordu
 
 ## Bilinen Bug Duzeltmeleri (tamamlandi)
 - Birlesik besin adi kaydetme bug'i: guncelle isleminde detayda " + " varsa besin DB'ye kaydedilmiyordu
@@ -171,24 +191,31 @@ Artik kullanilmayan tablolar:
 - Temizle sonrasi F5'te veri geri gelme bug'i: gunuTemizle Supabase'i temizlemiyordu
 - Tablo siralama bug'i: satirEkle push() → splice() ile duzeltildi
 - Besin DB duplikasyon bug'i: taban isim + ref_miktar semasiyla cozuldu
-- SW POST caching bug'i: Gemini POST istegi SW tarafindan cachelenmeye calisiliyordu, yanit bozuluyordu — sadece GET cache'leniyor
+- SW POST caching bug'i: Gemini POST istegi SW tarafindan cachelenmeye calisiliyordu — sadece GET cache'leniyor
 - besinler[] insulin tripling: 3 besin x 12U = 36U — ilkBesin flag ile duzeltildi
 - besinler[] baslik tekrarlama: "isim" alani yerine "detay" okunuyordu — duzeltildi
 - NET KARBONHIDRAT double-subtraction: Turk etiketleri net karb gosterdigi halde lif tekrar cikariliyordu
 - Ogun etiketi degistirme: kayitEtiketiOlustur() artik kayit.etiket override'ini onceliklendirir
-- bilesenler[] F5 sonrasi kaybolma: Supabase'e JSONB olarak kaydedilmiyor — daily_entries'e bilesenler+etiket kolonu eklendi, supabase.js guncellendi
-- Modal duzenle butonlari cakismasi: .dm-eylemler{display:flex} [hidden]'i eziyordu — [hidden]{display:none!important} ile duzeltildi
-- Modal duzenle sonrasi bilesen isimleri guncellenmiyor: aiIleIsle sonrasi bilesenler[i].detay manuel guncelleme eklendi
-- Modal duzenle degerleri degisiyor: AI'ya degismeyen bilesenlerin degerlerini "koru" direktifiyle gonderiliyor
+- bilesenler[] F5 sonrasi kaybolma: daily_entries'e bilesenler+etiket kolonu eklendi, supabase.js guncellendi
+- Modal duzenle butonlari cakismasi: [hidden]{display:none!important} ile duzeltildi
+- Modal duzenle sonrasi bilesen isimleri guncellenmiyor: aiIleIsle sonrasi manuel guncelleme eklendi
+- Modal duzenle degerleri degisiyor: AI'ya "koru" direktifiyle gonderiliyor; api.js guncelle schema'sinda bilesenler[] tanimli
+- Modal kaydet loading yok: spinner + "AI hesaplıyor..." bildirimi eklendi
+- bugunTarih() timezone bug'i: gece yarisi UTC+3 fark nedeniyle yanlis gun donuyordu — lokal tarih kullanimi ile duzeltildi
+- Gece yarisi kayit tarihi bug'i: 4 saat kurali ile cozuldu (kayitTarihi() fonksiyonu)
+- Tarih navigasyonu ikiser gidiyor: toISOString() + double event → tariheDayEkle() + type=button ile duzeltildi
+- Gecmis gunde giris yapılamıyor: giris alani her zaman gorunur, sadece modal butonlari gizleniyor
 
-## Kaldığımız Yer (2026-03-28)
+## Kaldığımız Yer (2026-03-29)
 - Uygulama GitHub Pages'de canlı ve calisiyor: https://cagri-karakas.github.io/t1d-panel/
-- Modal Duzenle modu tamamlandi: her bilesen editable, silinebilir, AI yeniden hesapliyor
-- bilesenler[] Supabase'e kaydediliyor (JSONB) — F5 sonrasi bilesen detaylari korunuyor
-- Ogun etiketi (Kahvalti/Ogle vb.) manual override destegi — AI etiket alani gonderiyor
-- SW network-first stratejisi: JS dosyalari her zaman network'ten cekiliyor
+- Tarih navigasyonu eklendi: ← → ile gecmis gunlere gidilip veri gorulebilir
+- 4 saat kurali aktif: gece yarisindan sonraki girisler dogru gune kaydediliyor
+- Modal Duzenle modu: per-item bilesen degerleri guncelleniyor (api.js bilesenler[] schema)
+- Gecmis gun gorunumunde giris alani aktif, sadece modal Duzenle/Sil gizli
 
 ## Siradaki Isler
+- Ogun etiketi sorunu: sabit saat araligina gore belirleniyor, gec uyananlar icin yanlis etiket cikiyor
+  * Cozum secenekleri: uyanis saati ayari, gun ici sira bazli etiket, veya AI context bazli karar
 - iOS klavye acilinca layout bozulma sorunu (position:fixed + visualViewport sorunu olabilir)
 - Profil bilgilerinin Supabase profiles tablosuna baglama (tablo mevcut, app.js entegrasyonu yok)
 - Supabase auth (Google login) — RLS gercek kullanici bazli yapilacak (simdilik USING(true), dusuk oncelik)
