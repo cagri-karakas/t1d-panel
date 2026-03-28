@@ -1206,10 +1206,11 @@ async function modalKaydetVeHesapla() {
     }
 
     const kaydetBtn = document.getElementById('dm-kaydet-btn');
-    kaydetBtn.textContent = 'Hesaplanıyor...';
     kaydetBtn.disabled = true;
+    kaydetBtn.innerHTML = '<span class="yukleniyor"></span>';
 
     document.getElementById('detay-modal').hidden = true;
+    bildirimGoster('AI hesaplıyor...');
 
     // Degisen/degismeyen bilesenleri ayirt et — degismeyenlerin degerlerini koru
     const eskiBilesenler = (kayit.bilesenler && kayit.bilesenler.length > 1)
