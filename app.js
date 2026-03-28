@@ -230,7 +230,10 @@ function simdikiSaat() {
 
 // --- Gunluk Veriler (localStorage) ---
 function bugunTarih() {
-    return new Date().toISOString().slice(0, 10);
+    const d = new Date();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const g = String(d.getDate()).padStart(2, '0');
+    return `${d.getFullYear()}-${m}-${g}`;
 }
 
 function aktifTarih() {
@@ -289,16 +292,20 @@ async function gunuGoster(tarih) {
     tarihNavGuncelle();
 }
 
+function tariheDayEkle(tarihStr, gun) {
+    const [y, m, d] = tarihStr.split('-').map(Number);
+    const dt = new Date(y, m - 1, d + gun);
+    const ay = String(dt.getMonth() + 1).padStart(2, '0');
+    const g = String(dt.getDate()).padStart(2, '0');
+    return `${dt.getFullYear()}-${ay}-${g}`;
+}
+
 function gunuGosterOnceki() {
-    const tarih = new Date(aktifTarih() + 'T00:00:00');
-    tarih.setDate(tarih.getDate() - 1);
-    gunuGoster(tarih.toISOString().slice(0, 10));
+    gunuGoster(tariheDayEkle(aktifTarih(), -1));
 }
 
 function gunuGosterSonraki() {
-    const tarih = new Date(aktifTarih() + 'T00:00:00');
-    tarih.setDate(tarih.getDate() + 1);
-    const yeniTarih = tarih.toISOString().slice(0, 10);
+    const yeniTarih = tariheDayEkle(aktifTarih(), 1);
     if (yeniTarih <= bugunTarih()) gunuGoster(yeniTarih);
 }
 
