@@ -275,11 +275,9 @@ function tarihNavGuncelle() {
         sonrakiBtn.disabled = false;
     }
 
-    // Gecmis modda giris alani ve butonlari gizle
-    const girisAlani = document.querySelector('.giris-alani');
+    // Gecmis modda temizle/geri al gizle — giris alani her zaman gorunur
     const temizleBtn = document.getElementById('btn-temizle-ana');
     const geriAlBtn = document.getElementById('geri-al-btn');
-    if (girisAlani) girisAlani.hidden = !bugunMu();
     if (temizleBtn) temizleBtn.hidden = !bugunMu();
     if (geriAlBtn) geriAlBtn.hidden = !bugunMu();
 }
