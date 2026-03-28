@@ -2,7 +2,7 @@
 // METABOLIK MUHENDISLIK PANELI - SERVICE WORKER
 // ============================================
 
-const CACHE_ADI = 'mmp-v8';
+const CACHE_ADI = 'mmp-v9';
 const ONBELLEK_DOSYALAR = [
     './',
     './index.html',
@@ -48,12 +48,12 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    event.respondWith(
-        caches.match(event.request).then((cevap) => {
-            if (cevap) return cevap;
+    const isJs = event.request.url.match(/\.(js)(\?|$)/);
 
-            return fetch(event.request).then((agCevap) => {
-                // Sadece GET isteklerini cache'le
+    if (isJs) {
+        // JS dosyalari: network-first (her deploy'da guncel kod gelsin)
+        event.respondWith(
+            fetch(event.request).then((agCevap) => {
                 if (agCevap && agCevap.status === 200) {
                     const kopyaCevap = agCevap.clone();
                     caches.open(CACHE_ADI).then((cache) => {
@@ -62,7 +62,31 @@ self.addEventListener('fetch', (event) => {
                 }
                 return agCevap;
             }).catch(() => {
-                // Offline ve cache'te yok
+                return caches.match(event.request).then((cevap) => {
+                    return cevap || new Response('Offline - sayfa bulunamadi', {
+                        status: 503,
+                        headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+                    });
+                });
+            })
+        );
+        return;
+    }
+
+    // Diger dosyalar (HTML, CSS, assets): cache-first
+    event.respondWith(
+        caches.match(event.request).then((cevap) => {
+            if (cevap) return cevap;
+
+            return fetch(event.request).then((agCevap) => {
+                if (agCevap && agCevap.status === 200) {
+                    const kopyaCevap = agCevap.clone();
+                    caches.open(CACHE_ADI).then((cache) => {
+                        cache.put(event.request, kopyaCevap);
+                    });
+                }
+                return agCevap;
+            }).catch(() => {
                 return new Response('Offline - sayfa bulunamadi', {
                     status: 503,
                     headers: { 'Content-Type': 'text/plain; charset=utf-8' }
