@@ -34,7 +34,7 @@ Dogal dil ile veri girisi, Claude API ile besin degeri hesaplama ve metabolik an
 ## Veritabani (Supabase)
 Aktif tablolar:
 - giris_loglari: islem log kayitlari (tarih, saat, tip, mesaj) - AKTIF
-- daily_entries: gunluk veri girisleri (id, profile_id, date, time, detail, cal, carb, fiber, protein, fat, blood_sugar, insulin, gi, image_url) - AKTIF, RLS acik
+- daily_entries: gunluk veri girisleri (id, profile_id, date, time, detail, cal, carb, fiber, protein, fat, blood_sugar, insulin, gi, image_url, bilesenler JSONB, etiket TEXT) - AKTIF, RLS acik
 - profiles: kullanici profili (id, name, gender, birth_date, height_cm, weight_kg) - TABLO MEVCUT, henuz app.js'e baglanmadi
 - daily_summaries: gun sonu metabolik ozetler (id, profile_id, date, total_cal, total_carb, total_insulin, ai_summary) - AKTIF, gun kapanisinda yaziliyor
 
@@ -132,19 +132,27 @@ Artik kullanilmayan tablolar:
 - daily_summaries bug duzeltildi: gunuKapat() artik supabaseOzetKaydet() cagiriyor
 - api.js fallback Gemini modeli guncellendi: gemini-2.0-flash → gemini-3-flash-preview (GitHub Pages'de config.js olmayinca devreye giriyor)
 - iOS safe area destegi eklendi: viewport-fit=cover (index.html), env(safe-area-inset-bottom) (style.css .giris-alani ve .sayfa)
-- sw.js cache versiyonu: mmp-v7 (her yeni deploy oncesi arttirilmali)
+- sw.js cache versiyonu: mmp-v12 (her yeni deploy oncesi arttirilmali)
 - sw.js sadece GET isteklerini cache'liyor; POST ve googleapis.com SW disinda
+- sw.js JS dosyalari (app.js, api.js) icin network-first stratejisi — deploy sonrasi hard refresh gerekmez
+- style.css: [hidden] { display: none !important } kurali eklendi — CSS class display override sorunu cozuldu
 
-## Tablo Detay & Modal (2026-03-27 eklendi)
+## Tablo Detay & Modal
 - DETAY sutunu artik kisa etiket gosteriyor: kayitEtiketiOlustur(kayit) — app.js
   * Sadece KS/Ins: "Kan sekeri olcumu", "Insulin dozu", "Kan sekeri + Insulin"
   * Besin girisleri saate gore: Kahvalti (06-10:30), Sabah ara ogunu, Ogle yemegi, Ikindi ara ogunu, Aksam yemegi, Gece atistirmasi
   * Karma giris: "Aksam yemegi + Ins" gibi bilesik etiket
-- Satira tiklaninca detay modali aciliyor (satirTiklandi): tam detay metni + 8 deger gridi + Sil butonu
+  * kayit.etiket alani varsa saat hesabini bypass eder (kullanici "kahvalti olacak" dediginde AI etiket:"Kahvaltı" gonderir)
+- Satira tiklaninca detay modali aciliyor (satirTiklandi): tam detay metni + 8 deger gridi + Sil + Duzenle butonu
 - Modal kapatma: X butonu veya overlay'e tikla
 - satirBirlestir() artik bilesenler[] dizisi biriktiriyor
   * Modal bilesenler[] varsa her ogeyi isim + besin ozeti satirinda gosteriyor
   * Eski veriler (bilesenler yoksa) ham detay metnini gosteriyor
+- Modal Duzenle modu (2026-03-28 eklendi):
+  * "Duzenle" butonu → her bilesen editable input'a donus, yaninda × silme butonu
+  * "Kaydet & Hesapla" → degismeyen bilesenlerin degerlerini mesajda AI'ya bildirir (koru), sadece degisen yeniden hesaplanir
+  * AI cevabi sonrasi bilesenler[].detay isimleri manuel guncellenir
+  * api.js: ogün etiketi duzeltmesinde veri.etiket gonderme talimati eklendi
 
 ## besinler[] Duzeltmeleri (2026-03-27)
 - besin.isim alani onceligi: detay = besin.isim || besin.detay || sonuc.detay
@@ -167,12 +175,18 @@ Artik kullanilmayan tablolar:
 - besinler[] insulin tripling: 3 besin x 12U = 36U — ilkBesin flag ile duzeltildi
 - besinler[] baslik tekrarlama: "isim" alani yerine "detay" okunuyordu — duzeltildi
 - NET KARBONHIDRAT double-subtraction: Turk etiketleri net karb gosterdigi halde lif tekrar cikariliyordu
+- Ogun etiketi degistirme: kayitEtiketiOlustur() artik kayit.etiket override'ini onceliklendirir
+- bilesenler[] F5 sonrasi kaybolma: Supabase'e JSONB olarak kaydedilmiyor — daily_entries'e bilesenler+etiket kolonu eklendi, supabase.js guncellendi
+- Modal duzenle butonlari cakismasi: .dm-eylemler{display:flex} [hidden]'i eziyordu — [hidden]{display:none!important} ile duzeltildi
+- Modal duzenle sonrasi bilesen isimleri guncellenmiyor: aiIleIsle sonrasi bilesenler[i].detay manuel guncelleme eklendi
+- Modal duzenle degerleri degisiyor: AI'ya degismeyen bilesenlerin degerlerini "koru" direktifiyle gonderiliyor
 
 ## Kaldığımız Yer (2026-03-28)
 - Uygulama GitHub Pages'de canlı ve calisiyor: https://cagri-karakas.github.io/t1d-panel/
-- besinler[] per-item kaynak/guven destegi eklendi, modal'da her bilesende kaynak badge'i gorunuyor
-- Tek girisli kayitlarda da modal'da kaynak badge'i duzeltildi
-- iOS klavye layout sorunu henuz cozulmedi
+- Modal Duzenle modu tamamlandi: her bilesen editable, silinebilir, AI yeniden hesapliyor
+- bilesenler[] Supabase'e kaydediliyor (JSONB) — F5 sonrasi bilesen detaylari korunuyor
+- Ogun etiketi (Kahvalti/Ogle vb.) manual override destegi — AI etiket alani gonderiyor
+- SW network-first stratejisi: JS dosyalari her zaman network'ten cekiliyor
 
 ## Siradaki Isler
 - iOS klavye acilinca layout bozulma sorunu (position:fixed + visualViewport sorunu olabilir)
