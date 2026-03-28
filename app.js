@@ -300,13 +300,21 @@ function tariheDayEkle(tarihStr, gun) {
     return `${dt.getFullYear()}-${ay}-${g}`;
 }
 
-function gunuGosterOnceki() {
-    gunuGoster(tariheDayEkle(aktifTarih(), -1));
+async function gunuGosterOnceki() {
+    const btn = document.getElementById('onceki-gun');
+    btn.disabled = true;
+    await gunuGoster(tariheDayEkle(aktifTarih(), -1));
+    btn.disabled = false;
 }
 
-function gunuGosterSonraki() {
+async function gunuGosterSonraki() {
     const yeniTarih = tariheDayEkle(aktifTarih(), 1);
-    if (yeniTarih <= bugunTarih()) gunuGoster(yeniTarih);
+    if (yeniTarih <= bugunTarih()) {
+        const btn = document.getElementById('sonraki-gun');
+        btn.disabled = true;
+        await gunuGoster(yeniTarih);
+        // tarihNavGuncelle() zaten disabled durumunu set edecek
+    }
 }
 
 function gunlukVerileriYukle() {
