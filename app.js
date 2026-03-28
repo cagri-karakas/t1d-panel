@@ -1193,14 +1193,14 @@ function modalIptal() {
 }
 
 async function modalKaydetVeHesapla() {
-    const index = durum.modalAcikIndex;
-    const kayit = durum.gunlukKayitlar[index];
+    const capturedIndex = durum.modalAcikIndex;
+    const kayit = durum.gunlukKayitlar[capturedIndex];
     if (!kayit) return;
 
     const inputs = document.querySelectorAll('#dm-edit-alani .dm-edit-input');
-    const bilesenler = Array.from(inputs).map(inp => inp.value.trim()).filter(v => v);
+    const capturedNames = Array.from(inputs).map(inp => inp.value.trim()).filter(v => v);
 
-    if (bilesenler.length === 0) {
+    if (capturedNames.length === 0) {
         bildirimGoster('En az bir bileşen gerekli', 'hata');
         return;
     }
@@ -1211,10 +1211,39 @@ async function modalKaydetVeHesapla() {
 
     document.getElementById('detay-modal').hidden = true;
 
-    const bilesenMetni = bilesenler.join(', ');
-    const mesaj = `${index}. satırı güncelle (saat ${kayit.saat}). Bileşenler değiştirildi: ${bilesenMetni}. Besin değerlerini yeniden hesapla.`;
+    // Degisen/degismeyen bilesenleri ayirt et — degismeyenlerin degerlerini koru
+    const eskiBilesenler = (kayit.bilesenler && kayit.bilesenler.length > 1)
+        ? kayit.bilesenler
+        : [{ detay: kayit.detay, kal: kayit.kal, karb: kayit.karb, lif: kayit.lif, prot: kayit.prot, yag: kayit.yag, gi: kayit.gi }];
+
+    const bilesenSatirlari = capturedNames.map((yeniIsim, i) => {
+        const eski = eskiBilesenler[i];
+        if (eski && yeniIsim === eski.detay) {
+            // Degismedi — mevcut degerleri koru
+            return `${i+1}. "${yeniIsim}" — ${eski.kal || '-'}kcal, ${eski.karb || '-'}g karb, ${eski.lif || '-'}g lif, ${eski.prot || '-'}g prot, ${eski.yag || '-'}g yağ [DEĞİŞMEDİ, mevcut değerleri koru]`;
+        } else {
+            // Degisti — yeniden hesapla
+            return `${i+1}. ${eski ? `"${eski.detay}" → ` : ''}"${yeniIsim}" [DEĞİŞTİ, yeniden hesapla]`;
+        }
+    });
+
+    const mesaj = `${capturedIndex}. satırı güncelle (saat ${kayit.saat}). Bileşenler:\n${bilesenSatirlari.join('\n')}\n\nDEĞİŞMEYEN bileşenlerin besin değerlerini birebir koru. Sadece değişen bileşeni yeniden hesapla. Toplam değerleri güncelle.`;
 
     await aiIleIsle(mesaj);
+
+    // AI sadece sayisal degerleri guncelliyor; bilesenlerin isimlerini de guncelle
+    const k = durum.gunlukKayitlar[capturedIndex];
+    if (k) {
+        if (k.bilesenler && k.bilesenler.length > 0) {
+            capturedNames.forEach((isim, i) => {
+                if (k.bilesenler[i]) k.bilesenler[i].detay = isim;
+            });
+        }
+        k.detay = capturedNames.join(' + ');
+        gunlukVerileriKaydet();
+        if (k.supabaseId) supabaseKayitGuncelle(k.supabaseId, k);
+        tabloGuncelle();
+    }
 
     kaydetBtn.textContent = 'Kaydet & Hesapla';
     kaydetBtn.disabled = false;

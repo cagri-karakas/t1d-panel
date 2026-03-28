@@ -871,6 +871,9 @@ body {
     background: rgba(255, 71, 87, 0.25);
 }
 
+/* hidden attribute her zaman display'i ezmeli */
+[hidden] { display: none !important; }
+
 /* --- Grafik --- */
 .grafik-alan {
     background: var(--bg-ikincil);
