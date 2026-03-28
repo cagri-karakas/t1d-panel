@@ -657,17 +657,22 @@ function kayitEtiketiOlustur(kayit) {
         return kayit.detay || '-';
     }
 
-    const saat = kayit.saat || '00:00';
-    const parcalar = saat.split(':');
-    const dakika = parseInt(parcalar[0]) * 60 + parseInt(parcalar[1] || 0);
-
+    // Manuel etiket override varsa kullan (kullanici duzeltmesi)
     let ogunAdi;
-    if (dakika >= 360 && dakika < 630) ogunAdi = 'Kahvaltı';
-    else if (dakika >= 630 && dakika < 720) ogunAdi = 'Sabah ara öğünü';
-    else if (dakika >= 720 && dakika < 900) ogunAdi = 'Öğle yemeği';
-    else if (dakika >= 900 && dakika < 1050) ogunAdi = 'İkindi ara öğünü';
-    else if (dakika >= 1050 && dakika < 1260) ogunAdi = 'Akşam yemeği';
-    else ogunAdi = 'Gece atıştırması';
+    if (kayit.etiket) {
+        ogunAdi = kayit.etiket;
+    } else {
+        const saat = kayit.saat || '00:00';
+        const parcalar = saat.split(':');
+        const dakika = parseInt(parcalar[0]) * 60 + parseInt(parcalar[1] || 0);
+
+        if (dakika >= 360 && dakika < 630) ogunAdi = 'Kahvaltı';
+        else if (dakika >= 630 && dakika < 720) ogunAdi = 'Sabah ara öğünü';
+        else if (dakika >= 720 && dakika < 900) ogunAdi = 'Öğle yemeği';
+        else if (dakika >= 900 && dakika < 1050) ogunAdi = 'İkindi ara öğünü';
+        else if (dakika >= 1050 && dakika < 1260) ogunAdi = 'Akşam yemeği';
+        else ogunAdi = 'Gece atıştırması';
+    }
 
     if (ks > 0 || ins > 0) {
         const ekler = [];

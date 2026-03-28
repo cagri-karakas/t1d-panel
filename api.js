@@ -94,6 +94,7 @@ MEVCUT SATIR GUNCELLERKEN (islem: "guncelle"):
   "yorumBaslik": "BASLIK METNI",
   "yorum": "Metabolik yorum/analiz metni"
 }
+OGUN ETİKETİ KURALI: Kullanici "kahvalti degil aksam yemegi", "ogun turunu X yap" gibi bir etiket duzeltmesi isterse veri objesine "etiket" alani ekle. Gecerli degerler: "Kahvaltı", "Sabah ara öğünü", "Öğle yemeği", "İkindi ara öğünü", "Akşam yemeği", "Gece atıştırması".
 
 SATIR SILERKEN (islem: "sil"):
 {
