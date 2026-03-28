@@ -75,7 +75,9 @@ async function supabaseKayitEkle(kayit, tarih) {
             blood_sugar: kayit.ks,
             insulin: kayit.ins,
             gi: kayit.gi,
-            image_url: kayit.gorselUrl
+            image_url: kayit.gorselUrl,
+            bilesenler: kayit.bilesenler ? JSON.stringify(kayit.bilesenler) : null,
+            etiket: kayit.etiket || null
         })
         .select();
 
@@ -110,7 +112,9 @@ async function supabaseKayitlariYukle(tarih) {
         ks: k.blood_sugar,
         ins: k.insulin,
         gi: k.gi,
-        gorselUrl: k.image_url
+        gorselUrl: k.image_url,
+        bilesenler: k.bilesenler ? (typeof k.bilesenler === 'string' ? JSON.parse(k.bilesenler) : k.bilesenler) : null,
+        etiket: k.etiket || null
     }));
 }
 
@@ -129,7 +133,9 @@ async function supabaseKayitGuncelle(id, kayit) {
             blood_sugar: kayit.ks,
             insulin: kayit.ins,
             gi: kayit.gi,
-            image_url: kayit.gorselUrl
+            image_url: kayit.gorselUrl,
+            bilesenler: kayit.bilesenler ? JSON.stringify(kayit.bilesenler) : null,
+            etiket: kayit.etiket || null
         })
         .eq('id', id)
         .select();
